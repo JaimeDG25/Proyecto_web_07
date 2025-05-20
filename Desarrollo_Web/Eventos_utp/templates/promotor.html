@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block nav %}
+<ul>
+    <li><a href="{% url 'index_link' %}">Apoyos</a></li>
+    <li><a href="{% url 'promotor_link' %}" class="enlace-activo">Promotores</a></li>
+    <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
+    <li><a href="{% url 'asistencia_link' %}">Registro de asistencia</a></li>
+    <li><a href="{% url 'generador_link' %}">Generador OC y NR</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Gestión de Promotores</h1>
+
+    <div class="controles-tabla">
+        <input type="search" class="campo-busqueda-tabla" id="campoBusquedaPromotor"
+            placeholder="Buscar por nombre, código, DNI...">
+
+        <button id="btnAbrirModalNuevoPromotor" class="boton-primario">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"
+                style="margin-right: 5px; vertical-align: middle;">
+                <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
+            </svg>
+            Registrar Nuevo Promotor
+        </button>
+    </div>
+
+    <div class="contenedor-tabla-responsiva">
+        <table id="tablaPromotores" class="tabla-datos-gestion">
+            <thead>
+                <tr>
+                    <th>Apellidos y Nombres</th>
+                    <th>Teléfono</th>
+                    <th>Código Promotor</th>
+                    <th>Correo Electrónico</th>
+                    <th>DNI</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaPromotores">
+                <!-- Las filas de promotores t -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalGestionPromotor" class="modal">
+    <div class="modal-contenido">
+        <span class="cerrar-modal" id="btnCerrarModalPromotor">×</span>
+        <h2 id="tituloModalPromotor">Registrar Nuevo Promotor</h2>
+
+        <form id="formularioPromotor">
+            <input type="hidden" id="idPromotorEditar">
+
+            <div class="grupo-formulario">
+                <label for="apellidosPromotor">Apellidos del Promotor:</label>
+                <input type="text" id="apellidosPromotor" name="apellidosPromotor" required>
+            </div>
+
+            <div class="grupo-formulario">
+                <label for="nombresPromotor">Nombres del Promotor:</label>
+                <input type="text" id="nombresPromotor" name="nombresPromotor" required>
+            </div>
+
+            <div class="grupo-formulario">
+                <label for="telefonoPromotor">Teléfono:</label>
+                <input type="tel" id="telefonoPromotor" name="telefonoPromotor" pattern="[0-9]{9}"
+                    title="Ingrese un número de teléfono válido (9 dígitos)" required>
+            </div>
+
+            <div class="grupo-formulario">
+                <label for="codigoPromotor">Código de Promotor:</label>
+                <input type="text" id="codigoPromotor" name="codigoPromotor" required>
+            </div>
+
+            <div class="grupo-formulario">
+                <label for="correoPromotor">Correo Electrónico:</label>
+                <input type="email" id="correoPromotor" name="correoPromotor" pattern=".+@utp\.edu\.pe$"
+                    title="Ingrese un correo válido de UTP (ej: usuario@utp.edu.pe)" required>
+            </div>
+
+            <div class="grupo-formulario">
+                <label for="dniPromotor">DNI:</label>
+                <input type="text" id="dniPromotor" name="dniPromotor" pattern="[0-9]{8}"
+                    title="Ingrese un DNI válido (8 dígitos)" required>
+            </div>
+
+            <div class="botones-formulario">
+                <button type="button" id="btnCancelarModalPromotor" class="boton-secundario">Cancelar</button>
+                <button type="submit" id="btnGuardarPromotor" class="boton-primario">Guardar Promotor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/promotor.js' %}"></script>
+{% endblock %}

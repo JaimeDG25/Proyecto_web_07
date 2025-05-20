@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Apoyos UTP</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/generador.css' %}">
+    <link rel="stylesheet" href="{% static 'css/asistencia.css' %}">
+</head>
+
+<body>
+
+    <nav class="barra-navegacion">
+        <button class="interruptor-menu" id="interruptorMenu" aria-label="Abrir menú" aria-expanded="false"
+            aria-controls="barraLateral">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="marca-barra-navegacion">
+            <img src="{% static 'img/logoUTP.png' %}" alt="Logo" alt="logotipo UTP" style="height: 60px; width: 60px;">
+            <span>Eventos UTP layout</span>
+        </div>
+    </nav>
+
+    <div class="contenedor-principal">
+        <aside class="barra-lateral" id="barraLateral">
+            <div class="cabecera-barra-lateral">
+            </div>
+            {% block nav %}
+            {% endblock %}
+            <!-- <ul>
+                <li><a href="{% url 'index_link' %}" class="enlace-activo">Apoyos</a></li>
+                <li><a href="{% url 'promotor_link' %}">Promotores</a></li>
+                <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
+                <li><a href="{% url 'asistencia_link' %}">Registro de asistencia</a></li>
+                <li><a href="{% url 'generador_link' %}">Generador OC y NR</a></li>
+            </ul> -->
+        </aside>
+
+        <main class="contenido">
+            <div class="contenido-interno">
+                {% block content %}
+                    <!-- Aquí se insertará el contenido de otras plantillas -->
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

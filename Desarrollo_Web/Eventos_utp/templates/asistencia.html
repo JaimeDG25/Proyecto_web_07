@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block nav %}
+<ul>
+    <li><a href="{% url 'index_link' %}">Apoyos</a></li>
+    <li><a href="{% url 'promotor_link' %}">Promotores</a></li>
+    <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
+    <li><a href="{% url 'asistencia_link' %}" class="enlace-activo">Registro de asistencia</a></li>
+    <li><a href="{% url 'generador_link' %}">Generador OC y NR</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Registro de Asistencia</h1>
+
+    <div class="layout-asistencia-flex">
+
+        <div class="columna-formulario-asistencia">
+            <form id="formularioRegistroAsistencia" class="formulario-en-pagina">
+                <h2>Planificar Nueva Asistencia</h2>
+                <input type="hidden" id="idAsistenciaEditar">
+
+                <div class="grupo-formulario">
+                    <label for="apoyoAsistencia">Seleccionar Apoyo:</label>
+                    <select id="apoyoAsistencia" name="apoyoAsistencia" required>
+                        <option value="">Cargando apoyos...</option>
+                    </select>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="colegioAsistencia">Seleccionar Colegio:</label>
+                    <select id="colegioAsistencia" name="colegioAsistencia" required>
+                        <option value="">Cargando colegios...</option>
+                    </select>
+                    <div id="infoColegioSeleccionado" class="info-adicional-seleccion">
+                        <!-- info del colegio seleccionado -->
+                    </div>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="rolAsistencia">Rol a Realizar:</label>
+                    <select id="rolAsistencia" name="rolAsistencia" required>
+                        <option value="">Seleccione un rol...</option>
+                        <option value="bus">Bus (S/ 50.00)</option>
+                        <option value="campus">Campus (S/ 40.00)</option>
+                    </select>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="turnoAsistencia">Turno:</label>
+                    <select id="turnoAsistencia" name="turnoAsistencia" required>
+                        <option value="">Seleccione un turno...</option>
+                        <option value="mañana">Mañana</option>
+                        <option value="tarde">Tarde</option>
+                    </select>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="fechaAsistencia">Fecha de Asistencia:</label>
+                    <input type="date" id="fechaAsistencia" name="fechaAsistencia" required>
+                </div>
+
+                <div class="botones-formulario">
+                    <button type="button" id="btnLimpiarFormularioAsistencia" class="boton-secundario">Limpiar</button>
+                    <button type="submit" id="btnPlanificarAsistencia" class="boton-primario">Planificar
+                        Asistencia</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="columna-tabla-asistencia">
+            <h2>Asistencias Planificadas (Pendientes de Confirmar)</h2>
+            <input type="search" id="campoBusquedaAsistenciaPlanificada" class="campo-busqueda-tabla"
+                placeholder="Buscar por apoyo, colegio, fecha...">
+
+            <div class="contenedor-tabla-responsiva" style="margin-top: 15px;">
+                <table id="tablaAsistenciasPlanificadas" class="tabla-datos-gestion">
+                    <thead>
+                        <tr>
+                            <th>Apoyo</th>
+                            <th>Rol</th>
+                            <th>Turno</th>
+                            <th>Colegio</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaAsistenciasPlanificadas">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script src="{% static 'js/asistencia.js' %}"></script>
+{% endblock %}

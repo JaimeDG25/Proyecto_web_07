@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Login',
+    'Eventos_utp',
 ]
 
 MIDDLEWARE = [
@@ -123,8 +124,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
+#IMPORTANTE DE COLOCAR PARA QUE EL CSS FUNCIONE BIEN
 STATIC_URL = 'static/'
-
+import os
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'Eventos_utp/static'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

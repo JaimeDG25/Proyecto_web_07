@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block nav %}
+<ul>
+    <li><a href="{% url 'index_link' %}">Apoyos</a></li>
+    <li><a href="{% url 'promotor_link' %}">Promotores</a></li>
+    <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
+    <li><a href="{% url 'asistencia_link' %}">Registro de asistencia</a></li>
+    <li><a href="{% url 'generador_link' %}" class="enlace-activo">Generador OC y NR</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1>Generador de Órdenes de Compra y Notas de Recepción</h1>
+
+    <section class="seccion-seleccion-apoyo">
+        <h2>1. Seleccionar Apoyo</h2>
+        <div class="grupo-formulario">
+            <label for="selectApoyoParaOC">Apoyo:</label>
+            <select id="selectApoyoParaOC" name="selectApoyoParaOC">
+                <option value="">Cargando apoyos...</option>
+            </select>
+        </div>
+    </section>
+
+    <section id="seccionAsistenciasPendientes" style="display:none;">
+        <h2>2. Seleccionar Asistencias para Pagar</h2>
+        <p>Seleccione las asistencias confirmadas del apoyo para incluir en la OC/NR.</p>
+        <div id="listaAsistenciasParaSeleccionar" class="lista-seleccionable">
+            <!-- las asisstencias registradas -->
+        </div>
+    </section>
+
+    <section id="seccionResumenOC" style="display:none;">
+        <h2>3. Resumen para Generar OC/NR</h2>
+        <div class="contenedor-tabla-responsiva">
+            <table id="tablaResumenPago" class="tabla-datos-gestion">
+                <thead>
+                    <tr>
+                        <th>Apoyo</th>
+                        <th>Fecha Asistencia</th>
+                        <th>Colegio</th>
+                        <th>Rol</th>
+                        <th>Pago</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaResumenPago">
+                    <!-- sobre lo seleccionaod -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align: right; font-weight: bold;">Total a Pagar:</td>
+                        <td id="totalAPagarOC" style="font-weight: bold;">S/ 0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="botones-formulario" style="margin-top: 20px;">
+            <button id="btnGenerarDocumentos" class="boton-primario">Generar OC y NR</button>
+        </div>
+    </section>
+
+    <hr style="margin: 30px 0;">
+
+    <section class="seccion-oc-generadas">
+        <h2>Órdenes de Compra / Notas de Recepción Generadas</h2>
+        <input type="search" id="campoBusquedaOCGeneradas" class="campo-busqueda-tabla"
+            placeholder="Buscar por apoyo, fecha, N° OC...">
+        <div class="contenedor-tabla-responsiva" style="margin-top: 15px;">
+            <table id="tablaOCGeneradas" class="tabla-datos-gestion">
+                <thead>
+                    <tr>
+                        <th>N° OC/NR</th>
+                        <th>Apoyo</th>
+                        <th>Fecha Generación</th>
+                        <th>Total Pagado</th>
+                        <th>Asistencias Incluidas</th>
+                        <th>Documentos (Simulado)</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaOCGeneradas">
+                    <!-- Aquí se listan los oc y nr -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div id="modalVisualizadorDocumento" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar-modal" id="btnCerrarModalVisualizador">×</span>
+            <h2 id="tituloModalVisualizador"></h2>
+            <pre id="contenidoModalVisualizador"
+                style="white-space: pre-wrap; word-wrap: break-word; max-height: 70vh; overflow-y: auto;"></pre>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/generador.js' %}"></script>
+{% endblock %}

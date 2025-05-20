@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block nav %}
+<ul>
+    <li><a href="{% url 'index_link' %}" class="enlace-activo">Apoyos</a></li>
+    <li><a href="{% url 'promotor_link' %}">Promotores</a></li>
+    <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
+    <li><a href="{% url 'asistencia_link' %}">Registro de asistencia</a></li>
+    <li><a href="{% url 'generador_link' %}">Generador OC y NR</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Gestión de Apoyos</h1>
+
+    <div class="controles-tabla">
+        <input type="search" id="campoBusquedaApoyo" class="campo-busqueda-tabla"
+            placeholder="Buscar apoyo por nombre, DNI, RUC...">
+        <button id="btnAbrirModalNuevoApoyo" class="boton-primario">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"
+                style="margin-right: 5px; vertical-align: middle;">
+                <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
+            </svg>
+            Registrar Nuevo Apoyo
+        </button>
+    </div>
+
+    <div class="contenedor-tabla-responsiva">
+        <table id="tablaApoyos" class="tabla-datos-gestion">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Teléfono</th>
+                    <th>DNI</th>
+                    <th>RUC</th>
+                    <th>Correo Electrónico</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaApoyos">
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="modalGestionApoyo" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar-modal" id="btnCerrarModalApoyo">×</span>
+            <h2 id="tituloModalApoyo">Registrar Nuevo Apoyo</h2>
+            <form id="formularioApoyo">
+                <input type="hidden" id="idApoyoEditar">
+
+                <div class="grupo-formulario">
+                    <label for="apellidosApoyo">Apellidos:</label>
+                    <input type="text" id="apellidosApoyo" name="apellidosApoyo" required>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="nombresApoyo">Nombres:</label>
+                    <input type="text" id="nombresApoyo" name="nombresApoyo" required>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="telefonoApoyo">Teléfono:</label>
+                    <input type="tel" id="telefonoApoyo" name="telefonoApoyo" pattern="[0-9]{9}"
+                        title="Ingrese un número de teléfono válido (9 dígitos)">
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="dniApoyo">DNI (8 dígitos):</label>
+                    <input type="text" id="dniApoyo" name="dniApoyo" pattern="\d{8}"
+                        title="El DNI debe contener 8 dígitos numéricos." min="7" max="8" required>
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="rucApoyo">RUC (11 dígitos, opcional):</label>
+                    <input type="text" id="rucApoyo" name="rucApoyo" pattern="\d{11}"
+                        title="El RUC debe contener 11 dígitos numéricos.">
+                </div>
+
+                <div class="grupo-formulario">
+                    <label for="correoApoyo">Correo Electrónico:</label>
+                    <input type="email" id="correoApoyo" name="correoApoyo" required>
+                </div>
+
+                <div class="botones-formulario">
+                    <button type="button" id="btnCancelarModalApoyo" class="boton-secundario">Cancelar</button>
+                    <button type="submit" id="btnGuardarApoyo" class="boton-primario">Guardar Apoyo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script src="{% static 'js/index.js' %}"></script>
+{% endblock %}
