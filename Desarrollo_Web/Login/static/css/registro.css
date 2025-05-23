@@ -1,0 +1,40 @@
+.modal {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 600px !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.4s ease-out;
+    backdrop-filter: blur(10px);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.input-group {
+    display: flex;
+    gap: 20px;           /* espacio horizontal entre columnas */
+}
+
+.input-col {
+    flex: 1;             /* que cada columna ocupe espacio proporcional */
+    display: flex;
+    flex-direction: column; /* para que label quede arriba del input */
+}
+
+.input-col label {
+    margin-bottom: 5px;  /* separa label del input */
+    font-weight: bold;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;            /* espacio entre icono y input */
+}
+
+.input-wrapper input {
+    flex: 1;             /* que el input ocupe todo el espacio disponible */
+    padding: 6px;
+    font-size: 1em;
+}

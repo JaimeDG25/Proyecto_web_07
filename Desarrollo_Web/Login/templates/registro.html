@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+    <link rel="stylesheet" href="{% static 'css/registro.css' %}">
+</head>
+
+<body>
+    <div class="overlay">
+        <div class="modal">
+            <h2>Registrar Administrativos</h2>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <div class="input-group">
+                    <div class="input-col">
+                        <label for="nombre">Nombre</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ingresar el nombre">
+                        </div>
+                    </div>
+                    <div class="input-col">
+                        <label for="apellido">Apellido</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <input type="text" id="apellido" name="apellido" placeholder="Ingresar el apellido">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-col">
+                        <label for="correo">Correo</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <input type="text" id="correo" name="correo" placeholder="Ingresar el correo">
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-col">
+                        <label for="sede">Sede</label>
+                        <div class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <input type="text" id="sede" name="sede" placeholder="Ingresar la SEDE">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" onclick="Enviar()">Registrar Datos</button>
+            </form>
+            <div class="centrar-boton">
+                <a href="{% url 'login_vista' %}" class="boton-enlace">
+                    <strong class="boton-enlace">Registrar al Login</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+<script>
+    function Enviar(){
+        event.preventDefault(); 
+        var nombre = document.getElementById("nombre").value
+        var apellido = document.getElementById("apellido").value
+        var correo = document.getElementById("correo").value
+        var sede = document.getElementById("sede").value
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        var Administrador ={
+            nombre : nombre,
+            apellido : apellido,
+            correo : correo,
+            sede : sede
+        }
+        console.log(Administrador)
+        fetch('/Login/enviar_registro/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            nombre: nombre,
+            apellido: apellido,
+            correo: correo,
+            sede: sede
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Respuesta:', data);
+        alert('Administrador registrado con éxito');
+        // puedes limpiar el formulario aquí si quieres
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al registrar administrador');
+    });
+    }
+</script>

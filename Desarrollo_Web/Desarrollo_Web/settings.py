@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-xo#tklv-(5qbn1enyzt+(jl7r1v$cjh=(y^+4-m-bqnk=a044q
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CSRF_TRUSTED_ORIGINS = ['https://*.cloudshell.dev/']
 
 # Application definition
 
@@ -125,10 +125,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 #IMPORTANTE DE COLOCAR PARA QUE EL CSS FUNCIONE BIEN
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'Eventos_utp/static'),
+    os.path.join(BASE_DIR, 'Login/static'),
 ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

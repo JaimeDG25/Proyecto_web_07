@@ -16,8 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from Login.views import redirigir_a_login 
 
 urlpatterns = [
+    path('', redirigir_a_login), 
     path('admin/', admin.site.urls),
     path('Evento/', include('Eventos_utp.urls')),
+    path('Login/', include('Login.urls')),
 ]

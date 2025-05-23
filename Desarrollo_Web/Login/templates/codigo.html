@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+</head>
+
+<body>
+    <div class="overlay">
+        <div class="modal">
+            <h2>Ingresar el codigo Administrativo</h2>
+            <form action="/Login/enviar_codigo" method="POST">
+                {% csrf_token %}
+                <div class="input-group">
+                    <label for="codigo">Codigo administrativo</label>
+                    <div class="input-wrapper">
+                        <i class='bx bx-user'></i>
+                        <input type="text" id="codigo" name="codigo" placeholder="Ingresa el codigo">
+                    </div>
+                </div>
+                <button type="submit">Enviar el codigo</button>
+            </form>
+            <div class="centrar-boton">
+                <a href="{% url 'login_vista' %}" class="boton-enlace">
+                    <strong class="boton-enlace">Registrar al Login</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script src="{% static 'js/app.js' %}"></script>

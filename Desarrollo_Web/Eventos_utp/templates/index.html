@@ -3,11 +3,13 @@
 
 {% block nav %}
 <ul>
-    <li><a href="{% url 'index_link' %}" class="enlace-activo">Apoyos</a></li>
-    <li><a href="{% url 'promotor_link' %}">Promotores</a></li>
-    <li><a href="{% url 'colegio_link' %}">Colegios</a></li>
-    <li><a href="{% url 'asistencia_link' %}">Registro de asistencia</a></li>
-    <li><a href="{% url 'generador_link' %}">Generador OC y NR</a></li>
+    <li><a href="{% url 'index_link' %}" class="enlace-activo">
+        <strong>Apoyos</strong>
+    </a></li>
+    <li><a href="{% url 'promotor_link' %}"><strong>Promotores</strong></a></li>
+    <li><a href="{% url 'colegio_link' %}"><strong>Colegios</strong></a></li>
+    <li><a href="{% url 'asistencia_link' %}"><strong>Registro de asistencia</strong></a></li>
+    <li><a href="{% url 'generador_link' %}"><strong>Generador OC y NR</strong></a></li>
 </ul>
 {% endblock %}
 

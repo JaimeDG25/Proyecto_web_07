@@ -1,0 +1,196 @@
+/* Reset & base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    /* ✅ permite scroll en pantallas pequeñas */
+}
+
+
+/* Fondo institucional */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/static/img/UTP_VILLA_EL_SALVADOR_2M.jpg') no-repeat center center;
+    /* imagen opcional */
+    background-size: cover;
+    z-index: -1;
+    filter: blur(4px) brightness(0.7);
+}
+.centrar-boton {
+    text-align: center;
+    margin-top: 15px; /* opcional, para separar del borde superior */
+}
+.boton-enlace {
+    display: inline-block;
+    padding: 8px 5px;
+    background-color: #9b1212 !important;
+    color: white;
+    text-decoration: none; /* Quita el subrayado */
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.boton-enlace:hover {
+    background-color: #eb1111 !important;
+}
+
+.boton-enlace:visited {
+    color: white; /* Igual que el color normal */
+}
+
+
+/* Modal general */
+.overlay {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    /* ✅ espacio interno para evitar que el modal se pegue a los bordes */
+}
+
+
+.modal {
+    background: rgba(255, 255, 255, 0.95);
+    /* blanco base */
+    padding: 2.5rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.4s ease-out;
+    backdrop-filter: blur(10px);
+    position: relative;
+    max-height: 95vh;
+    /* ✅ evita que el modal se salga completamente de la pantalla */
+    overflow-y: auto;
+    /* ✅ activa scroll interno si es necesario */
+}
+
+h2 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #c00d00;
+    /* Rojo institucional */
+}
+
+.input-group {
+    margin-bottom: 1.3rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #111;
+    /* Negro fuerte */
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    background: #f9f9f9;
+    transition: border-color 0.3s;
+}
+
+.input-wrapper i {
+    color: #c00000;
+    /* Iconos rojos */
+    margin-right: 0.6rem;
+    font-size: 1.2rem;
+}
+
+.input-wrapper input {
+    border: none;
+    flex: 1;
+    background: transparent;
+    font-size: 1rem;
+    color: #111;
+}
+
+.input-wrapper input:focus {
+    outline: none;
+}
+
+.input-wrapper:focus-within {
+    border-color: #c00000;
+    box-shadow: 0 0 8px rgba(192, 0, 0, 0.3);
+}
+
+/* Botón */
+button {
+    width: 100%;
+    padding: 0.9rem;
+    background: #c00000;
+    /* Rojo principal */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.1s;
+}
+
+button:hover {
+    background: #9a0000;
+    /* Rojo más oscuro */
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* Error */
+.error {
+    color: #c00000;
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    display: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1
+    }
+}
