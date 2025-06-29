@@ -6,7 +6,8 @@ from .FireStore.fs_enviar_correo import Enviar_correo
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
-# Create your views here.
+
+# Vista generada para el login inicial del administrador.
 def login (request):
     usuarios = Administradores.objects.all()
     for user in usuarios:
@@ -15,9 +16,11 @@ def login (request):
         print(user.contraseña_administrador)
     return render(request, 'login.html',{'superuser':usuarios})
 
+#Vista generada para redireccionar de regreso al login
 def redirigir_a_login(request):
     return redirect('login_vista')
 
+#Metodo para enviar los datos del login y acceder al programa
 def enviar_datos(request):
     if request.method == 'POST':
         correo = request.POST.get('correo')
@@ -35,9 +38,11 @@ def enviar_datos(request):
             return render(request, 'login.html', {'error': 'Credenciales incorrectas'})
     return render(request, 'login.html')
 
+#Metodo para cerrar session
 def cerrar_sesion(request):
     return render(request, 'login.html')
 
+#Metodo para dirigir a la vista y enviar una clave al jefe admin
 def codigo_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
@@ -47,6 +52,7 @@ def codigo_vista(request):
     request.session['clave_hasheada'] = clave_hasheada
     return render(request,'codigo.html')
 
+#Metodo para validar el codigo y dirigir al registro de nuevos jefes
 def enviar_codigo(request):
     if request.method == 'POST':
         codigo = request.POST.get('codigo')
@@ -56,16 +62,13 @@ def enviar_codigo(request):
             return render(request, 'registro.html')
         else:
             return render(request, 'codigo.html', {'error': 'Código incorrecto'})
-
     return redirect('codigo_vista') 
-
 
 def registro_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
     print(clave_hasheada)
     return render(request, 'registro.html',{'clave_generada':clave_generada,'clave_hasheada':clave_hasheada})
-
 
 
 @csrf_exempt  # Solo si no estás usando {% csrf_token %} correctamente

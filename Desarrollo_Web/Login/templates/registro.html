@@ -45,10 +45,25 @@
                 <div class="input-group">
                     <div class="input-col">
                         <label for="sede">Sede</label>
-                        <div class="input-wrapper">
+                        <select id="sede" name="sede" class="input-wrapper">
+                            <i class='bx bx-user'></i>
+                            <option value="0">Lima Centro</option>
+                            <option value="1">Lima Norte</option>
+                            <option value="2">Lima Sur</option>
+                            <option value="3">Lima Este-SJL</option>
+                            <option value="4">Lima Este-Ate</option>
+                            <option value="5">Arequipa</option>
+                            <option value="6">Chiclayo</option>
+                            <option value="7">Chimbote</option>
+                            <option value="8">Piura</option>
+                            <option value="9">Huancayo</option>
+                            <option value="10">Ica</option>
+                            <option value="11">Trujillo</option>
+                        </select>
+                        <!-- <div class="input-wrapper">
                             <i class='bx bx-user'></i>
                             <input type="text" id="sede" name="sede" placeholder="Ingresar la SEDE">
-                        </div>
+                        </div> -->
                     </div>
                 </div>
                 <button type="submit" onclick="Enviar()">Registrar Datos</button>
@@ -69,7 +84,8 @@
         var nombre = document.getElementById("nombre").value
         var apellido = document.getElementById("apellido").value
         var correo = document.getElementById("correo").value
-        var sede = document.getElementById("sede").value
+        var sedeSelect = document.getElementById("sede");
+        var sede = sedeSelect.options[sedeSelect.selectedIndex].text;
         const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         var Administrador ={
             nombre : nombre,
