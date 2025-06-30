@@ -14,10 +14,8 @@
 {% endblock %}
 
 {% block content %}
-
 <div>
     <h1>Gestión de Apoyos</h1>
-
     <div class="controles-tabla">
         <input type="search" id="campoBusquedaApoyo" class="campo-busqueda-tabla"
             placeholder="Buscar apoyo por nombre, DNI, RUC...">
@@ -29,7 +27,15 @@
             Registrar Nuevo Apoyo
         </button>
     </div>
-
+    {% if admin %}
+    <h2>Perfil del Administrador</h2>
+    <p>ID: {{ admin.id_administrador }}</p>
+    <p>Correo: {{ admin.correo_administrador }}</p>
+    <p>Fecha de creación: {{ admin.fcreacion_administrador }}</p>
+    <p>Sede: {{ admin.sede_administrador }}</p>
+{% elif error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
     <div class="contenedor-tabla-responsiva">
         <table id="tablaApoyos" class="tabla-datos-gestion">
             <thead>
@@ -43,51 +49,45 @@
                 </tr>
             </thead>
             <tbody id="cuerpoTablaApoyos">
-
             </tbody>
         </table>
     </div>
 </div>
-<div id="modalGestionApoyo" class="modal">
+<div id="modalGestionApoyo" class="modal" data-bs-backdrop="static">
         <div class="modal-contenido">
             <span class="cerrar-modal" id="btnCerrarModalApoyo">×</span>
             <h2 id="tituloModalApoyo">Registrar Nuevo Apoyo</h2>
-            <form id="formularioApoyo">
+            <form id="formularioApoyo" method="POST">
+                {% csrf_token %}
                 <input type="hidden" id="idApoyoEditar">
 
                 <div class="grupo-formulario">
                     <label for="apellidosApoyo">Apellidos:</label>
-                    <input type="text" id="apellidosApoyo" name="apellidosApoyo" required>
+                    <input type="text" id="apellidosApoyo" name="apellidosApoyo" required value="plastico">
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="nombresApoyo">Nombres:</label>
-                    <input type="text" id="nombresApoyo" name="nombresApoyo" required>
+                    <input type="text" id="nombresApoyo" name="nombresApoyo" required value="botella">
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="telefonoApoyo">Teléfono:</label>
                     <input type="tel" id="telefonoApoyo" name="telefonoApoyo" pattern="[0-9]{9}"
-                        title="Ingrese un número de teléfono válido (9 dígitos)">
+                        title="Ingrese un número de teléfono válido (9 dígitos)" value="123456789">
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="dniApoyo">DNI (8 dígitos):</label>
                     <input type="text" id="dniApoyo" name="dniApoyo" pattern="\d{8}"
-                        title="El DNI debe contener 8 dígitos numéricos." min="7" max="8" required>
+                        title="El DNI debe contener 8 dígitos numéricos." min="7" max="8" required value="12345678">
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="rucApoyo">RUC (11 dígitos, opcional):</label>
                     <input type="text" id="rucApoyo" name="rucApoyo" pattern="\d{11}"
-                        title="El RUC debe contener 11 dígitos numéricos.">
+                        title="El RUC debe contener 11 dígitos numéricos." value="12345678901">
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="correoApoyo">Correo Electrónico:</label>
-                    <input type="email" id="correoApoyo" name="correoApoyo" required>
+                    <input type="email" id="correoApoyo" name="correoApoyo" required value="garcia@gmail.com">
                 </div>
-
                 <div class="botones-formulario">
                     <button type="button" id="btnCancelarModalApoyo" class="boton-secundario">Cancelar</button>
                     <button type="submit" id="btnGuardarApoyo" class="boton-primario">Guardar Apoyo</button>
@@ -95,5 +95,56 @@
             </form>
         </div>
     </div>
-<script src="{% static 'js/index.js' %}"></script>
+<script>
+    function abrirModal() {
+        const modal = document.getElementById('modalGestionApoyo');
+        modal.style.display = 'block';
+    }
+
+    function cerrarModal() {
+        const modal = document.getElementById('modalGestionApoyo');
+        modal.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('btnAbrirModalNuevoApoyo').addEventListener('click', abrirModal);
+        document.getElementById('btnCerrarModalApoyo').addEventListener('click', cerrarModal);
+        document.getElementById('btnCancelarModalApoyo').addEventListener('click', cerrarModal);
+
+        const formulario = document.getElementById("formularioApoyo");
+        formulario.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const apoyoData = {
+                id: document.getElementById("idApoyoEditar").value,
+                apellido: document.getElementById("apellidosApoyo").value,
+                nombre: document.getElementById("nombresApoyo").value,
+                telefono: document.getElementById("telefonoApoyo").value,
+                dni: document.getElementById("dniApoyo").value,
+                ruc: document.getElementById("rucApoyo").value,
+                correo: document.getElementById("correoApoyo").value
+            };
+            console.log("Datos del apoyo:", apoyoData);
+
+            fetch('/Evento/registrar_apoyo/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(apoyoData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta del servidor:', data);
+                formulario.reset();
+                cerrarModal();
+            })
+            .catch(error => {
+                console.error('Error al enviar:', error);
+                alert('Error al registrar apoyo');
+            });
+        });
+    });
+</script>
 {% endblock %}

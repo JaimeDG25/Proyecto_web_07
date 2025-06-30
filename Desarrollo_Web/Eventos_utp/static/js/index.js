@@ -1,3 +1,4 @@
+console.log("hola mundo desde un scrip en una carpeta aparte")
 document.addEventListener('DOMContentLoaded', function () {
     // --- MANEJO DE BARRA LATERAL ---
     const botonInterruptorMenu = document.getElementById('interruptorMenu');
@@ -101,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderizarTablaApoyos(apoyosParaMostrar = listaDeApoyos) {
         if (!cuerpoTablaApoyos) return;
         cuerpoTablaApoyos.innerHTML = '';
-
         if (apoyosParaMostrar.length === 0) {
             const filaVacia = cuerpoTablaApoyos.insertRow();
             const celdaVacia = filaVacia.insertCell();
@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
             celdaVacia.style.padding = '20px';
             return;
         }
-
         apoyosParaMostrar.forEach(apoyo => {
             const fila = cuerpoTablaApoyos.insertRow();
             fila.insertCell().textContent = `${apoyo.apellidos} ${apoyo.nombres}`;
@@ -119,16 +118,13 @@ document.addEventListener('DOMContentLoaded', function () {
             fila.insertCell().textContent = apoyo.dni;
             fila.insertCell().textContent = apoyo.ruc || '-';
             fila.insertCell().textContent = apoyo.correo;
-
             const celdaAcciones = fila.insertCell();
             celdaAcciones.style.whiteSpace = 'nowrap';
-
             const botonEditar = document.createElement('button');
             botonEditar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 18.89H6.41421L15.7279 9.57629L14.3137 8.16207L5 17.4758V18.89ZM21 11.1621L12.7279 2.89H11.3137L2.46447 11.7376C2.17157 12.0305 2 12.4369 2 12.8625V18.89C2 19.4423 2.44772 19.89 3 19.89H9.02754C9.45312 19.89 9.85953 19.7184 10.1524 19.4255L18.4246 11.1534L19.8388 12.5676L18.8476 13.5588L19.5547 14.2659L21.2929 12.5278C21.6834 12.1373 21.6834 11.5041 21.2929 11.1136L19.8787 9.70001L21 8.57871V11.1621Z"></path></svg> Editar';
             botonEditar.classList.add('boton-accion', 'boton-editar');
             botonEditar.addEventListener('click', () => abrirModal('editar', apoyo));
             celdaAcciones.appendChild(botonEditar);
-
             const botonEliminar = document.createElement('button');
             botonEliminar.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 6V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7ZM9 4V6H15V4H9Z"></path></svg> Eliminar';
             botonEliminar.classList.add('boton-accion', 'boton-eliminar');
@@ -141,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formularioApoyo) {
         formularioApoyo.addEventListener('submit', function (evento) {
             evento.preventDefault();
-
             const datosApoyo = {
                 apellidos: document.getElementById('apellidosApoyo').value.trim(),
                 nombres: document.getElementById('nombresApoyo').value.trim(),
@@ -150,12 +145,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 ruc: document.getElementById('rucApoyo').value.trim() || null,
                 correo: document.getElementById('correoApoyo').value.trim()
             };
-
             if (!datosApoyo.apellidos || !datosApoyo.nombres || !datosApoyo.dni || !datosApoyo.correo) {
                 alert('Por favor, complete todos los campos obligatorios (Apellidos, Nombres, DNI, Correo).');
                 return;
             }
-
             const esDniDuplicado = listaDeApoyos.some(
                 apoyoExistente => apoyoExistente.dni === datosApoyo.dni && (idApoyoEnEdicion === null || apoyoExistente.id !== idApoyoEnEdicion)
             );
@@ -163,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('El DNI ingresado ya existe para otro apoyo. Por favor, use uno diferente.');
                 return;
             }
-
             if (datosApoyo.dni.length !== 8 || !/^\d+$/.test(datosApoyo.dni)) {
                 alert('El DNI debe tener 8 dígitos numéricos.');
                 return;
@@ -172,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('El RUC debe tener 11 dígitos numéricos.');
                 return;
             }
-
             if (idApoyoEnEdicion !== null) {
                 const indice = listaDeApoyos.findIndex(a => a.id === idApoyoEnEdicion);
                 if (indice !== -1) {
@@ -182,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 datosApoyo.id = proximoIdApoyo++;
                 listaDeApoyos.push(datosApoyo);
             }
-
             guardarApoyosEnLocalStorage();
             renderizarTablaApoyos();
             cerrarModal();
@@ -207,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const dni = apoyo.dni.toLowerCase();
                 const ruc = (apoyo.ruc || '').toLowerCase();
                 const correo = apoyo.correo.toLowerCase();
-
                 return nombreCompleto.includes(terminoBusqueda) ||
                     dni.includes(terminoBusqueda) ||
                     ruc.includes(terminoBusqueda) ||
@@ -216,6 +205,5 @@ document.addEventListener('DOMContentLoaded', function () {
             renderizarTablaApoyos(apoyosFiltrados);
         });
     }
-
     renderizarTablaApoyos();
 });

@@ -27,7 +27,7 @@
                     <label for="contraseña">Contraseña</label>
                     <div class="input-wrapper">
                         <i class='bx bx-lock'></i>
-                        <input type="password" id="contraseña" name="contraseña">
+                        <input type="password" id="contraseña" name="contraseña" value="567bff">
                     </div>
                 </div>
                 <button type="submit">Enviar los datos</button>
@@ -37,13 +37,6 @@
                     <strong class="boton-enlace">Registrar un nuevo administrador</strong>
                 </a>
             </div>
-            
-            <!-- <a href="{% url 'registro_vista' %}">Ir a registro</a>
-            <a href="{% url 'promotor_link' %}">Ir a Promotores</a>
-            <a href="{% url 'index_link' %}">Ir al Inicio (index)</a>
-            <a href="{% url 'colegio_link' %}">Ir a Colegios</a>
-            <a href="{% url 'asistencia_link' %}">Ir a Asistencias</a>
-            <a href="{% url 'generador_link' %}">Ir a Generador</a> -->
             {% for user in superuser %}
             <p>{{user.correo_administrador}} - {{user.contraseña_administrador}}</p>
             {% endfor %}

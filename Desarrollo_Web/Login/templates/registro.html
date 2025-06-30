@@ -60,10 +60,6 @@
                             <option value="10">Ica</option>
                             <option value="11">Trujillo</option>
                         </select>
-                        <!-- <div class="input-wrapper">
-                            <i class='bx bx-user'></i>
-                            <input type="text" id="sede" name="sede" placeholder="Ingresar la SEDE">
-                        </div> -->
                     </div>
                 </div>
                 <button type="submit" onclick="Enviar()">Registrar Datos</button>
@@ -95,27 +91,27 @@
         }
         console.log(Administrador)
         fetch('/Login/enviar_registro/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({
-            nombre: nombre,
-            apellido: apellido,
-            correo: correo,
-            sede: sede
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                apellido: apellido,
+                correo: correo,
+                sede: sede
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Respuesta:', data);
-        alert('Administrador registrado con éxito');
-        // puedes limpiar el formulario aquí si quieres
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al registrar administrador');
-    });
+        .then(response => response.json())
+        .then(data => {
+            console.log('Respuesta:', data);
+            alert('Administrador registrado con éxito');
+            // puedes limpiar el formulario aquí si quieres
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al registrar administrador');
+        });
     }
 </script>

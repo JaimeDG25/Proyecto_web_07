@@ -9,18 +9,19 @@
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <link rel="stylesheet" href="{% static 'css/generador.css' %}">
     <link rel="stylesheet" href="{% static 'css/asistencia.css' %}">
+    <link rel="stylesheet" href="{% static 'css/generador.css' %}">
 </head>
 
 <body>
     <nav class="barra-navegacion">
         <div class="marca-barra-navegacion">
             <img src="{% static 'img/logoUTP.png' %}" alt="Logo UTP" style="height: 60px; width: 60px;">
-            <span>Eventos de Apoyos / Dias UTPs / </span>
+            <span>Eventos de Apoyos / Dias UTPss     / </span>
         </div>
         <div class="menu-usuario">
-            <button id="botonOpciones" class="boton-opciones" aria-label="Opciones de usuario">
+            <button id="botonOpciones" class="boton-opciones" aria-label="Opciones de usuario">           
+                <p class="usuario"> {{ admin.nombre_administrador }} {{ admin.apellido_administrador }}</p>
                 <i class="fas fa-user fa-fw"></i>☰
             </button>
             <div id="menuDesplegable" class="menu-desplegable oculto">

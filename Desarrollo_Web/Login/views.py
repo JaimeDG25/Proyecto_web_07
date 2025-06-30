@@ -1,15 +1,15 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
-from .models import Administradores, Administrador
-from .FireStore.fs_contraseña import generar_clave,convertir_hash
-from .FireStore.fs_enviar_correo import Enviar_correo
+from .models import Administrador
+from .Sources.src_contraseña import generar_clave,convertir_hash
+from .Sources.src_enviar_correo import Enviar_correo
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 
 # Vista generada para el login inicial del administrador.
 def login (request):
-    usuarios = Administradores.objects.all()
+    usuarios = Administrador.objects.all()
     for user in usuarios:
         print(user.id_administrador)
         print(user.correo_administrador)
@@ -25,13 +25,12 @@ def enviar_datos(request):
     if request.method == 'POST':
         correo = request.POST.get('correo')
         contraseña = request.POST.get('contraseña')
-        print(correo)
-        print(contraseña)
         try:
             existe = Administrador.objects.get(
                 correo_administrador=correo,
                 contraseña_administrador=convertir_hash(contraseña)
             )
+            request.session['correo_administrador'] = correo
             return redirect('index_link')
         except Administrador.DoesNotExist:
             # Opcional: mensaje de error
@@ -64,6 +63,7 @@ def enviar_codigo(request):
             return render(request, 'codigo.html', {'error': 'Código incorrecto'})
     return redirect('codigo_vista') 
 
+#Metodo para dirigir a la vista de registro
 def registro_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
@@ -71,7 +71,7 @@ def registro_vista(request):
     return render(request, 'registro.html',{'clave_generada':clave_generada,'clave_hasheada':clave_hasheada})
 
 
-@csrf_exempt  # Solo si no estás usando {% csrf_token %} correctamente
+@csrf_exempt 
 def enviar_registro(request):
     if request.method == 'POST':
         data = json.loads(request.body)
