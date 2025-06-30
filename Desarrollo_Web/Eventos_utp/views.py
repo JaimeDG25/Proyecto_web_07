@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from Login.models import Administrador 
+from Login.models import Administrador
+from Eventos_utp.models import Apoyo 
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -36,11 +37,24 @@ def registrar_apoyo(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)  # ← aquí obtienes los datos JSON
-            print("Nombre completo:", data.get('nombre'),data.get('apellido'))
-            print("Teléfono:", data.get('telefono'))
-            print("DNI:", data.get('dni'))
-            print("RUC:", data.get('ruc'))
-            print("Correo:", data.get('correo'))
+            nombre_completo= data.get('nombre', '') + ' ' + data.get('apellido', '')
+            telefono = data.get('telefono')
+            dni = data.get('dni')
+            ruc = data.get('ruc')
+            correo= data.get('correo')
+            print("Nombre completo:", nombre_completo)
+            print("Teléfono:", telefono)
+            print("DNI:", dni)
+            print("RUC:", ruc)
+            print("Correo:", correo)
+            nuevo_apoyo = Apoyo(
+                nombre_completo = nombre_completo,
+                telefono = telefono,
+                dni = dni,
+                ruc = ruc,
+                correo= correo
+            )
+            nuevo_apoyo.save()
             return JsonResponse({'mensaje': 'Apoyo registrado correctamente'})
         except Exception as e:
             print("Error al registrar apoyo:", e)
