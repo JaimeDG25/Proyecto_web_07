@@ -28,21 +28,53 @@
             Registrar Nuevo Promotor
         </button>
     </div>
-
+    {% if admin %}
+    <div class="perfil-admin-contenedor"
+        style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+        <h3 style="margin-top: 0;">Perfil del Administrador</h3>
+        <p><strong>ID:</strong> {{ admin.id_administrador }}</p>
+        <p><strong>Correo:</strong> {{ admin.correo_administrador }}</p>
+        <p><strong>Sede:</strong> {{ admin.sede_administrador }}</p>
+    </div>
+    {% endif %}
     <div class="contenedor-tabla-responsiva">
         <table id="tablaPromotores" class="tabla-datos-gestion">
             <thead>
                 <tr>
                     <th>Apellidos y Nombres</th>
                     <th>Teléfono</th>
-                    <th>Código Promotor</th>
-                    <th>Correo Electrónico</th>
                     <th>DNI</th>
+                    <th>Correo Electrónico</th>
+                    <th>Código Promotor</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaPromotores">
-                <!-- Las filas de promotores t -->
+                {% for promotor in lista_promotores %}
+                <tr class="fila-apoyo">
+                    <td>{{ promotor.nombre_completo_promotor }}</td>
+                    <td>{{ promotor.telefono_promotor}}</td>
+                    <td>{{ promotor.dni_promotor}}</td>
+                    <td>{{ promotor.correo_promotor }}</td>
+                    <td>{{ promotor.codigo_promotor}}</td>
+                    <td>
+                        <button class="boton-accion boton-editar" 
+                            data-id="{{ promotor.id }}"
+                            data-nombre_completo="{{ promotor.nombre_completo_promotor }}" 
+                            data-telefono="{{ promotor.telefono_promotor }}"
+                            data-dni="{{ promotor.dni_promotor}}" 
+                            data-ruc="{{ promotor.correo_promotor }}" 
+                            data-correo="{{ promotor.codigo_promotor }}">
+                            Editar
+                        </button>
+                        
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No hay apoyos registrados.</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -53,7 +85,8 @@
         <span class="cerrar-modal" id="btnCerrarModalPromotor">×</span>
         <h2 id="tituloModalPromotor">Registrar Nuevo Promotor</h2>
 
-        <form id="formularioPromotor">
+        <form id="formularioPromotor" method="POST" novalidate>
+            {% csrf_token %}
             <input type="hidden" id="idPromotorEditar">
 
             <div class="grupo-formulario">
@@ -96,6 +129,85 @@
         </form>
     </div>
 </div>
+<script>
+        
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('modalGestionPromotor');
+        const form = document.getElementById('formularioPromotor');
+        const tituloModal = document.getElementById('tituloModalPromotor');
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-<script src="{% static 'js/promotor.js' %}"></script>
+        //FUNCION PARA ABRIR EL MODAL 
+        function abrirModal() {
+            modal.style.display = 'block';
+        }
+        //FUNCION PARA CERRAR EL MODAL 
+        function cerrarModal() {
+            modal.style.display = 'none';
+            form.reset();
+        }
+        //INCOPORANDO LA FUNCION ABRIR MODAL EN EL BOTON PARA ABRIR EL MODAL
+        document.getElementById('btnAbrirModalNuevoPromotor').addEventListener('click', () => {
+            tituloModal.textContent = 'Registrar Nuevo Promotor';
+            form.reset();
+            abrirModal();
+        });
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
+        document.getElementById('btnCerrarModalPromotor').addEventListener('click', cerrarModal);
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
+        document.getElementById('btnCancelarModalPromotor').addEventListener('click', cerrarModal);
+
+        //HACIENDO UNA SOLICITUD FECTH A LA RUTA PARA AGREGAR
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const apoyoData = Object.fromEntries(new FormData(form));
+            console.log(apoyoData)
+            fetch("{% url 'registrar_promotor' %}", {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': csrfToken 
+                },
+                body: JSON.stringify(apoyoData)
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error || 'Error del servidor');
+                    alert(data.mensaje);
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error al guardar:', error);
+                    alert('Ocurrió un error: ' + error.message);
+                });
+        });
+        //FUNCION PARA ABRIR EL BOTON DE EDITAR APOYO
+        document.querySelectorAll('.boton-editar').forEach(button => {
+            button.addEventListener('click', function () {
+                const data = this.dataset;
+                tituloModal.textContent = 'Editar Promotor';
+                document.getElementById('idPromotorEditar').value = data.id;
+                const nombreCompleto = data.nombre_completo || '';
+                const partesNombre = nombreCompleto.split(' ');
+                const nombres = partesNombre.pop() || '';
+                const apellidos = partesNombre.join(' ');
+                document.getElementById('nombresPromotor').value = nombres;
+                document.getElementById('apellidosPromotor').value = apellidos;
+                document.getElementById('telefonoPromotor').value = data.telefono !== 'None' ? data.telefono : '';
+                document.getElementById('dniPromotor').value = data.dni;
+                document.getElementById('codigoPromotor').value = data.codigo !== 'None' ? data.codigo : '';
+                document.getElementById('correoPromotor').value = data.correo;
+                abrirModal();
+            });
+        });
+        //FUNCION PARA EL CAMPO DE BUSQUEDA
+        const campoBusqueda = document.getElementById('campoBusquedaApoyo');
+        campoBusqueda.addEventListener('input', function () {
+            const termino = this.value.toLowerCase().trim();
+            document.querySelectorAll('#cuerpoTablaApoyos .fila-apoyo').forEach(fila => {
+                fila.style.display = fila.textContent.toLowerCase().includes(termino) ? '' : 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -1,39 +1,37 @@
 #Desarrollo_Web/Eventos_utp/models.py
-
 from django.db import models
-#gaaaaaaaaaaaaaaaaaaaaa
+
 class Promotor(models.Model):
-    nombres = models.CharField(max_length=100)
-    apellidos = models.CharField(max_length=100)
-    codigo = models.CharField(max_length=20, unique=True)
-    telefono = models.CharField(max_length=20)
-    dni = models.CharField(max_length=8, unique=True)
-    correo = models.EmailField()
+    nombre_completo_promotor = models.CharField(max_length=100)
+    codigo_promotor = models.CharField(max_length=20, unique=True)
+    telefono_promotor = models.CharField(max_length=20)
+    dni_promotor = models.CharField(max_length=8, unique=True)
+    correo_promotor = models.EmailField()
 
     def __str__(self):
-        return f"{self.apellidos}, {self.nombres} ({self.codigo})"
+        return f"{self.apellidos_promotor}, {self.nombres_promotor} ({self.codigo_promotor})"
 
 
 class Apoyo(models.Model):
-    nombre_completo = models.CharField(max_length=200)
-    telefono = models.CharField(max_length=20)
-    dni = models.CharField(max_length=8, unique=True)
-    ruc = models.CharField(max_length=11, blank=True)
-    correo = models.EmailField()
+    nombre_completo_apoyo = models.CharField(max_length=200)
+    telefono_apoyo = models.CharField(max_length=20)
+    dni_apoyo = models.CharField(max_length=8, unique=True)
+    ruc_apoyo = models.CharField(max_length=11, blank=True)
+    correo_apoyo = models.EmailField()
 
     def __str__(self):
         return self.nombre_completo
 
 
 class Colegio(models.Model):
-    nombre = models.CharField(max_length=200)
-    promotor = models.ForeignKey(Promotor, on_delete=models.CASCADE)
-    apellidos_encargado = models.CharField(max_length=100)
-    nombres_encargado = models.CharField(max_length=100)
-    telefono_encargado = models.CharField(max_length=9)
-    distrito = models.CharField(max_length=100)
-    link_ubicacion = models.URLField(blank=True)
-    archivo_excel = models.FileField(upload_to='bases_datos/', blank=True, null=True)
+    nombre_colegio = models.CharField(max_length=200)
+    promotor_colegio = models.ForeignKey(Promotor, on_delete=models.CASCADE)
+    apellidos_encargado_colegio = models.CharField(max_length=100)
+    nombres_encargado_colegio = models.CharField(max_length=100)
+    telefono_encargado_colegio = models.CharField(max_length=9)
+    distrito_colegio = models.CharField(max_length=100)
+    link_ubicacion_colegio = models.URLField(blank=True)
+    archivo_excel_colegio = models.FileField(upload_to='bases_datos/', blank=True, null=True)
 
     def __str__(self):
         return self.nombre

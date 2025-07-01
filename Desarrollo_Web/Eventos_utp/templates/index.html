@@ -52,18 +52,23 @@
             <tbody id="cuerpoTablaApoyos">
                 {% for apoyo in lista_apoyos %}
                 <tr class="fila-apoyo">
-                    <td>{{ apoyo.nombre_completo }}</td>
-                    <td>{{ apoyo.telefono|default:"-" }}</td>
-                    <td>{{ apoyo.dni }}</td>
-                    <td>{{ apoyo.ruc|default_if_none:"-" }}</td>
-                    <td>{{ apoyo.correo }}</td>
+                    <td>{{ apoyo.nombre_completo_apoyo }}</td>
+                    <td>{{ apoyo.telefono_apoyo}}</td>
+                    <td>{{ apoyo.dni_apoyo}}</td>
+                    <td>{{ apoyo.ruc_apoyo}}</td>
+                    <td>{{ apoyo.correo_apoyo }}</td>
                     <td>
-                        <button class="boton-accion boton-editar" data-id="{{ apoyo.id }}"
-                            data-nombre_completo="{{ apoyo.nombre_completo }}" data-telefono="{{ apoyo.telefono }}"
-                            data-dni="{{ apoyo.dni }}" data-ruc="{{ apoyo.ruc }}" data-correo="{{ apoyo.correo }}">
+                        <button class="boton-accion boton-editar" 
+                            data-id="{{ apoyo.id }}"
+                            data-nombre_completo="{{ apoyo.nombre_completo_apoyo }}" 
+                            data-telefono="{{ apoyo.telefono_apoyo }}"
+                            data-dni="{{ apoyo.dni_apoyo }}" 
+                            data-ruc="{{ apoyo.ruc_apoyo }}" 
+                            data-correo="{{ apoyo.correo_apoyo }}">
                             Editar
                         </button>
-                        <button class="boton-accion boton-eliminar" data-nombre="{{ apoyo.nombre_completo }}"
+                        <button class="boton-accion boton-eliminar" 
+                            data-nombre="{{ apoyo.nombre_completo_apoyo }}"
                             data-url="{% url 'eliminar_apoyo' apoyo.id %}">
                             Eliminar
                         </button>
@@ -87,21 +92,24 @@
         <form id="formularioApoyo" method="POST" novalidate>
             {% csrf_token %}
             <input type="hidden" id="idApoyoEditar" name="id">
-
             <div class="grupo-formulario"><label for="apellidosApoyo">Apellidos:</label><input type="text"
-                    id="apellidosApoyo" name="apellidos" required></div>
-            <div class="grupo-formulario"><label for="nombresApoyo">Nombres:</label><input type="text" id="nombresApoyo"
-                    name="nombres" required></div>
+                id="apellidosApoyo" name="apellidos" required>
+            </div>
+            <div class="grupo-formulario"><label for="nombresApoyo">Nombres:</label><input type="text" 
+                id="nombresApoyo"name="nombres" required>
+            </div>
             <div class="grupo-formulario"><label for="telefonoApoyo">Teléfono (9 dígitos):</label><input type="tel"
-                    id="telefonoApoyo" name="telefono" pattern="[0-9]{9}" title="Ingrese 9 dígitos numéricos."></div>
+                id="telefonoApoyo" name="telefono" pattern="[0-9]{9}" title="Ingrese 9 dígitos numéricos.">
+            </div>
             <div class="grupo-formulario"><label for="dniApoyo">DNI (8 dígitos):</label><input type="text" id="dniApoyo"
-                    name="dni" pattern="\d{8}" title="El DNI debe tener 8 dígitos." maxlength="8" required></div>
+                name="dni" pattern="\d{8}" title="El DNI debe tener 8 dígitos." maxlength="8" required>
+            </div>
             <div class="grupo-formulario"><label for="rucApoyo">RUC (11 dígitos, opcional):</label><input type="text"
-                    id="rucApoyo" name="ruc" pattern="\d{11}" title="El RUC debe tener 11 dígitos." maxlength="11">
+                id="rucApoyo" name="ruc" pattern="\d{11}" title="El RUC debe tener 11 dígitos." maxlength="11">
             </div>
             <div class="grupo-formulario"><label for="correoApoyo">Correo Electrónico:</label><input type="email"
-                    id="correoApoyo" name="correo" required></div>
-
+                id="correoApoyo" name="correo" required>
+            </div>
             <div class="botones-formulario">
                 <button type="button" id="btnCancelarModalApoyo" class="boton-secundario">Cancelar</button>
                 <button type="submit" id="btnGuardarApoyo" class="boton-primario">Guardar</button>
@@ -119,55 +127,59 @@
         const form = document.getElementById('formularioApoyo');
         const tituloModal = document.getElementById('tituloModalApoyo');
         const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-
-        const abrirModal = () => modal.style.display = 'block';
-        const cerrarModal = () => {
+        
+        //FUNCION PARA ABRIR EL MODAL 
+        function abrirModal() {
+            const modal = document.getElementById('modalGestionApoyo');
+            modal.style.display = 'block';
+        }
+        //FUNCION PARA CERRAR EL MODAL 
+        function cerrarModal() {
+            const modal = document.getElementById('modalGestionApoyo');
             modal.style.display = 'none';
             form.reset();
-            document.getElementById('idApoyoEditar').value = '';
-        };
-
+        }
+        //INCOPORANDO LA FUNCION ABRIR MODAL EN EL BOTON PARA ABRIR EL MODAL
         document.getElementById('btnAbrirModalNuevoApoyo').addEventListener('click', () => {
             tituloModal.textContent = 'Registrar Nuevo Apoyo';
             form.reset();
             abrirModal();
         });
-
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
         document.getElementById('btnCerrarModalApoyo').addEventListener('click', cerrarModal);
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
         document.getElementById('btnCancelarModalApoyo').addEventListener('click', cerrarModal);
-        window.addEventListener('click', (event) => {
-            if (event.target === modal) cerrarModal();
-        });
 
+        //FUNCION PARA ABRIR EL BOTON DE EDITAR APOYO
         document.querySelectorAll('.boton-editar').forEach(button => {
             button.addEventListener('click', function () {
                 const data = this.dataset;
                 tituloModal.textContent = 'Editar Apoyo';
                 document.getElementById('idApoyoEditar').value = data.id;
-
                 const nombreCompleto = data.nombre_completo || '';
                 const partesNombre = nombreCompleto.split(' ');
                 const nombres = partesNombre.pop() || '';
                 const apellidos = partesNombre.join(' ');
-
                 document.getElementById('nombresApoyo').value = nombres;
                 document.getElementById('apellidosApoyo').value = apellidos;
                 document.getElementById('telefonoApoyo').value = data.telefono !== 'None' ? data.telefono : '';
                 document.getElementById('dniApoyo').value = data.dni;
                 document.getElementById('rucApoyo').value = data.ruc !== 'None' ? data.ruc : '';
                 document.getElementById('correoApoyo').value = data.correo;
-
                 abrirModal();
             });
         });
 
+        //HACIENDO UNA SOLICITUD FECTH A LA RUTA PARA AGREGAR
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             const apoyoData = Object.fromEntries(new FormData(form));
-
             fetch("{% url 'registrar_apoyo' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': csrfToken 
+                },
                 body: JSON.stringify(apoyoData)
             })
                 .then(response => response.json().then(data => ({ ok: response.ok, data })))
@@ -182,11 +194,11 @@
                 });
         });
 
+        //HACIENDO UNA SOLICITUD FECTH A LA RUTA ELIMINAR
         document.querySelectorAll('.boton-eliminar').forEach(button => {
             button.addEventListener('click', function () {
                 const apoyoNombre = this.dataset.nombre;
                 const url = this.dataset.url; // URL generada por Django
-
                 if (confirm(`¿Está seguro de que desea eliminar a "${apoyoNombre}"?`)) {
                     fetch(url, {
                         method: 'POST',
@@ -206,6 +218,7 @@
             });
         });
 
+        //FUNCION PARA EL CAMPO DE BUSQUEDA
         const campoBusqueda = document.getElementById('campoBusquedaApoyo');
         campoBusqueda.addEventListener('input', function () {
             const termino = this.value.toLowerCase().trim();
