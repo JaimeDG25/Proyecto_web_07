@@ -1,3 +1,5 @@
+//Desarrollo_Web/Eventos_utp/static/js/index.js
+
 console.log("hola mundo desde un scrip en una carpeta aparte")
 document.addEventListener('DOMContentLoaded', function () {
     // --- MANEJO DE BARRA LATERAL ---

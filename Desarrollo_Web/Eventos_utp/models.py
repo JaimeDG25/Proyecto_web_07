@@ -1,3 +1,5 @@
+#Desarrollo_Web/Eventos_utp/models.py
+
 from django.db import models
 #gaaaaaaaaaaaaaaaaaaaaa
 class Promotor(models.Model):
