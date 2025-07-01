@@ -1,4 +1,5 @@
-.usuario{
+/* Estilos para la barra de navegación */
+.usuario {
     display: inline-block !important;
     font-size: 20px !important;
 }
@@ -17,87 +18,69 @@
     z-index: 1000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .marca-barra-navegacion {
     display: flex;
     align-items: center;
     font-weight: bold;
     font-size: 1.2em;
 }
-
 .marca-barra-navegacion img {
     margin-right: 10px;
 }
-
 .menu-usuario {
     position: relative;
 }
-
 .boton-opciones {
     background: none;
     border: none;
     color: white;
     font-size: 24px;
     cursor: pointer;
+    display: flex; /* Para alinear el texto y el icono */
+    align-items: center;
 }
+
+/* --- ESTILOS CORREGIDOS PARA EL MENÚ DESPLEGABLE --- */
+
+/* La clase '.oculto' ha sido eliminada. Ya no es necesaria. */
 
 .menu-desplegable {
     position: absolute;
-    top: 60px;
-    right: 0; /* ✅ Esto asegura que el menú se despliegue hacia la derecha */
-    background-color: white;
-    color: black;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    min-width: 150px;
-    display: none;
-    flex-direction: column;
-    z-index: 2000;
-}
-
-.menu-desplegable a {
-    padding: 10px;
-    text-decoration: none;
-    color: black;
-    border-bottom: 1px solid #eee;
-}
-
-.menu-desplegable a:hover {
-    background-color: #f0f0f0;
-}
-
-.oculto {
-    display: none;
-}
-
-.visible {
-    display: flex;
-}
-.menu-desplegable {
-    position: absolute;
-    top: 60px;
+    top: 50px; /* Un poco más cerca del botón */
     right: 0;
     background-color: white;
     color: black;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     border-radius: 4px;
-    min-width: 150px;
+    min-width: 180px;
+    z-index: 2000;
 
-    /* Ocultamos con opacidad 0 y escala un poco más pequeña */
+    /* Estado por defecto: Oculto con una transición suave */
     opacity: 0;
     transform: translateY(-10px);
-    pointer-events: none;
-
-    /* Transición suave */
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    z-index: 2000;
+    pointer-events: none; /* No se puede interactuar cuando está oculto */
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Cuando está visible, opacidad 1 y sin desplazamiento */
+/* Estado visible: Se activa cuando JavaScript añade la clase '.visible' */
 .menu-desplegable.visible {
     opacity: 1;
     transform: translateY(0);
-    pointer-events: auto;
+    pointer-events: auto; /* Se puede interactuar */
+}
+
+.menu-desplegable a {
+    display: block;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: black;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-desplegable a:last-child {
+    border-bottom: none; /* El último elemento no necesita borde */
+}
+
+.menu-desplegable a:hover {
+    background-color: #f0f0f0;
 }

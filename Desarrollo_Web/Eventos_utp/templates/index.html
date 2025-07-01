@@ -1,11 +1,10 @@
+<!-- Desarrollo_Web/Eventos_utp/templates/index.html (COMPLETO Y FINAL) -->
 {% extends "layout.html" %}
 {% load static %}
 
 {% block nav %}
 <ul>
-    <li><a href="{% url 'index_link' %}" class="enlace-activo">
-        <strong>Apoyos</strong>
-    </a></li>
+    <li><a href="{% url 'index_link' %}" class="enlace-activo"><strong>Apoyos</strong></a></li>
     <li><a href="{% url 'promotor_link' %}"><strong>Promotores</strong></a></li>
     <li><a href="{% url 'colegio_link' %}"><strong>Colegios</strong></a></li>
     <li><a href="{% url 'asistencia_link' %}"><strong>Registro de asistencia</strong></a></li>
@@ -27,15 +26,17 @@
             Registrar Nuevo Apoyo
         </button>
     </div>
+
     {% if admin %}
-    <h2>Perfil del Administrador</h2>
-    <p>ID: {{ admin.id_administrador }}</p>
-    <p>Correo: {{ admin.correo_administrador }}</p>
-    <p>Fecha de creación: {{ admin.fcreacion_administrador }}</p>
-    <p>Sede: {{ admin.sede_administrador }}</p>
-{% elif error %}
-    <p style="color:red;">{{ error }}</p>
-{% endif %}
+    <div class="perfil-admin-contenedor"
+        style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+        <h3 style="margin-top: 0;">Perfil del Administrador</h3>
+        <p><strong>ID:</strong> {{ admin.id_administrador }}</p>
+        <p><strong>Correo:</strong> {{ admin.correo_administrador }}</p>
+        <p><strong>Sede:</strong> {{ admin.sede_administrador }}</p>
+    </div>
+    {% endif %}
+
     <div class="contenedor-tabla-responsiva">
         <table id="tablaApoyos" class="tabla-datos-gestion">
             <thead>
@@ -49,100 +50,167 @@
                 </tr>
             </thead>
             <tbody id="cuerpoTablaApoyos">
+                {% for apoyo in lista_apoyos %}
+                <tr class="fila-apoyo">
+                    <td>{{ apoyo.nombre_completo }}</td>
+                    <td>{{ apoyo.telefono|default:"-" }}</td>
+                    <td>{{ apoyo.dni }}</td>
+                    <td>{{ apoyo.ruc|default_if_none:"-" }}</td>
+                    <td>{{ apoyo.correo }}</td>
+                    <td>
+                        <button class="boton-accion boton-editar" data-id="{{ apoyo.id }}"
+                            data-nombre_completo="{{ apoyo.nombre_completo }}" data-telefono="{{ apoyo.telefono }}"
+                            data-dni="{{ apoyo.dni }}" data-ruc="{{ apoyo.ruc }}" data-correo="{{ apoyo.correo }}">
+                            Editar
+                        </button>
+                        <button class="boton-accion boton-eliminar" data-nombre="{{ apoyo.nombre_completo }}"
+                            data-url="{% url 'eliminar_apoyo' apoyo.id %}">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No hay apoyos registrados.</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-<div id="modalGestionApoyo" class="modal" data-bs-backdrop="static">
-        <div class="modal-contenido">
-            <span class="cerrar-modal" id="btnCerrarModalApoyo">×</span>
-            <h2 id="tituloModalApoyo">Registrar Nuevo Apoyo</h2>
-            <form id="formularioApoyo" method="POST">
-                {% csrf_token %}
-                <input type="hidden" id="idApoyoEditar">
 
-                <div class="grupo-formulario">
-                    <label for="apellidosApoyo">Apellidos:</label>
-                    <input type="text" id="apellidosApoyo" name="apellidosApoyo" required value="plastico">
-                </div>
-                <div class="grupo-formulario">
-                    <label for="nombresApoyo">Nombres:</label>
-                    <input type="text" id="nombresApoyo" name="nombresApoyo" required value="botella">
-                </div>
-                <div class="grupo-formulario">
-                    <label for="telefonoApoyo">Teléfono:</label>
-                    <input type="tel" id="telefonoApoyo" name="telefonoApoyo" pattern="[0-9]{9}"
-                        title="Ingrese un número de teléfono válido (9 dígitos)" value="123456789">
-                </div>
-                <div class="grupo-formulario">
-                    <label for="dniApoyo">DNI (8 dígitos):</label>
-                    <input type="text" id="dniApoyo" name="dniApoyo" pattern="\d{8}"
-                        title="El DNI debe contener 8 dígitos numéricos." min="7" max="8" required value="12345678">
-                </div>
-                <div class="grupo-formulario">
-                    <label for="rucApoyo">RUC (11 dígitos, opcional):</label>
-                    <input type="text" id="rucApoyo" name="rucApoyo" pattern="\d{11}"
-                        title="El RUC debe contener 11 dígitos numéricos." value="12345678901">
-                </div>
-                <div class="grupo-formulario">
-                    <label for="correoApoyo">Correo Electrónico:</label>
-                    <input type="email" id="correoApoyo" name="correoApoyo" required value="garcia@gmail.com">
-                </div>
-                <div class="botones-formulario">
-                    <button type="button" id="btnCancelarModalApoyo" class="boton-secundario">Cancelar</button>
-                    <button type="submit" id="btnGuardarApoyo" class="boton-primario">Guardar Apoyo</button>
-                </div>
-            </form>
-        </div>
+<!-- MODAL PARA GESTIONAR APOYOS -->
+<div id="modalGestionApoyo" class="modal" style="display:none;">
+    <div class="modal-contenido">
+        <span class="cerrar-modal" id="btnCerrarModalApoyo">×</span>
+        <h2 id="tituloModalApoyo">Registrar Nuevo Apoyo</h2>
+        <form id="formularioApoyo" method="POST" novalidate>
+            {% csrf_token %}
+            <input type="hidden" id="idApoyoEditar" name="id">
+
+            <div class="grupo-formulario"><label for="apellidosApoyo">Apellidos:</label><input type="text"
+                    id="apellidosApoyo" name="apellidos" required></div>
+            <div class="grupo-formulario"><label for="nombresApoyo">Nombres:</label><input type="text" id="nombresApoyo"
+                    name="nombres" required></div>
+            <div class="grupo-formulario"><label for="telefonoApoyo">Teléfono (9 dígitos):</label><input type="tel"
+                    id="telefonoApoyo" name="telefono" pattern="[0-9]{9}" title="Ingrese 9 dígitos numéricos."></div>
+            <div class="grupo-formulario"><label for="dniApoyo">DNI (8 dígitos):</label><input type="text" id="dniApoyo"
+                    name="dni" pattern="\d{8}" title="El DNI debe tener 8 dígitos." maxlength="8" required></div>
+            <div class="grupo-formulario"><label for="rucApoyo">RUC (11 dígitos, opcional):</label><input type="text"
+                    id="rucApoyo" name="ruc" pattern="\d{11}" title="El RUC debe tener 11 dígitos." maxlength="11">
+            </div>
+            <div class="grupo-formulario"><label for="correoApoyo">Correo Electrónico:</label><input type="email"
+                    id="correoApoyo" name="correo" required></div>
+
+            <div class="botones-formulario">
+                <button type="button" id="btnCancelarModalApoyo" class="boton-secundario">Cancelar</button>
+                <button type="submit" id="btnGuardarApoyo" class="boton-primario">Guardar</button>
+            </div>
+        </form>
     </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
 <script>
-    function abrirModal() {
-        const modal = document.getElementById('modalGestionApoyo');
-        modal.style.display = 'block';
-    }
-
-    function cerrarModal() {
-        const modal = document.getElementById('modalGestionApoyo');
-        modal.style.display = 'none';
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('btnAbrirModalNuevoApoyo').addEventListener('click', abrirModal);
+        const modal = document.getElementById('modalGestionApoyo');
+        const form = document.getElementById('formularioApoyo');
+        const tituloModal = document.getElementById('tituloModalApoyo');
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        const abrirModal = () => modal.style.display = 'block';
+        const cerrarModal = () => {
+            modal.style.display = 'none';
+            form.reset();
+            document.getElementById('idApoyoEditar').value = '';
+        };
+
+        document.getElementById('btnAbrirModalNuevoApoyo').addEventListener('click', () => {
+            tituloModal.textContent = 'Registrar Nuevo Apoyo';
+            form.reset();
+            abrirModal();
+        });
+
         document.getElementById('btnCerrarModalApoyo').addEventListener('click', cerrarModal);
         document.getElementById('btnCancelarModalApoyo').addEventListener('click', cerrarModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) cerrarModal();
+        });
 
-        const formulario = document.getElementById("formularioApoyo");
-        formulario.addEventListener("submit", function (event) {
+        document.querySelectorAll('.boton-editar').forEach(button => {
+            button.addEventListener('click', function () {
+                const data = this.dataset;
+                tituloModal.textContent = 'Editar Apoyo';
+                document.getElementById('idApoyoEditar').value = data.id;
+
+                const nombreCompleto = data.nombre_completo || '';
+                const partesNombre = nombreCompleto.split(' ');
+                const nombres = partesNombre.pop() || '';
+                const apellidos = partesNombre.join(' ');
+
+                document.getElementById('nombresApoyo').value = nombres;
+                document.getElementById('apellidosApoyo').value = apellidos;
+                document.getElementById('telefonoApoyo').value = data.telefono !== 'None' ? data.telefono : '';
+                document.getElementById('dniApoyo').value = data.dni;
+                document.getElementById('rucApoyo').value = data.ruc !== 'None' ? data.ruc : '';
+                document.getElementById('correoApoyo').value = data.correo;
+
+                abrirModal();
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
             event.preventDefault();
-            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-            const apoyoData = {
-                id: document.getElementById("idApoyoEditar").value,
-                apellido: document.getElementById("apellidosApoyo").value,
-                nombre: document.getElementById("nombresApoyo").value,
-                telefono: document.getElementById("telefonoApoyo").value,
-                dni: document.getElementById("dniApoyo").value,
-                ruc: document.getElementById("rucApoyo").value,
-                correo: document.getElementById("correoApoyo").value
-            };
-            console.log("Datos del apoyo:", apoyoData);
+            const apoyoData = Object.fromEntries(new FormData(form));
 
-            fetch('/Evento/registrar_apoyo/', {
+            fetch("{% url 'registrar_apoyo' %}", {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify(apoyoData)
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Respuesta del servidor:', data);
-                formulario.reset();
-                cerrarModal();
-            })
-            .catch(error => {
-                console.error('Error al enviar:', error);
-                alert('Error al registrar apoyo');
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error || 'Error del servidor');
+                    alert(data.mensaje);
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error al guardar:', error);
+                    alert('Ocurrió un error: ' + error.message);
+                });
+        });
+
+        document.querySelectorAll('.boton-eliminar').forEach(button => {
+            button.addEventListener('click', function () {
+                const apoyoNombre = this.dataset.nombre;
+                const url = this.dataset.url; // URL generada por Django
+
+                if (confirm(`¿Está seguro de que desea eliminar a "${apoyoNombre}"?`)) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                    })
+                        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                        .then(({ ok, data }) => {
+                            if (!ok) throw new Error(data.error || 'Error del servidor');
+                            alert(data.mensaje);
+                            location.reload();
+                        })
+                        .catch(error => {
+                            console.error('Error al eliminar:', error);
+                            alert('Ocurrió un error al eliminar: ' + error.message);
+                        });
+                }
+            });
+        });
+
+        const campoBusqueda = document.getElementById('campoBusquedaApoyo');
+        campoBusqueda.addEventListener('input', function () {
+            const termino = this.value.toLowerCase().trim();
+            document.querySelectorAll('#cuerpoTablaApoyos .fila-apoyo').forEach(fila => {
+                fila.style.display = fila.textContent.toLowerCase().includes(termino) ? '' : 'none';
             });
         });
     });

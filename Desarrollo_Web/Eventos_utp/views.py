@@ -1,14 +1,14 @@
-from django.shortcuts import render
-from Login.models import Administrador
-from Eventos_utp.models import Apoyo 
+# Desarrollo_Web/Eventos_utp/views.py
+
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 import json
-from django.views.decorators.csrf import csrf_exempt
 
-# IMPORTACIONES DE RECURSOS
-from .Sources.src_apoyos import CN_Apoyos
+from Login.models import Administrador
+from .models import Apoyo
 
-#METODO ESPECIAL PARA OBTENER CREDENCIALES DEL ADMIN
+# MÉTODO ESPECIAL PARA OBTENER CREDENCIALES DEL ADMIN
 def obtener_administrador(request):
     correo = request.session.get('correo_administrador')
     if correo:
@@ -18,70 +18,97 @@ def obtener_administrador(request):
             return None
     return None
 
-def layout (request):
+def layout(request):
     admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'layout.html', {'admin': admin})
-    return render(request, 'layout.html')
+    return render(request, 'layout.html', {'admin': admin})
 
-def index (request):
-    consulta=CN_Apoyos.Listar_Apoyos()
-    print(consulta)   
+# VISTA PRINCIPAL DE APOYOS
+def index(request):
+    # Obtenemos TODOS los apoyos de la base de datos, ordenados por nombre
+    lista_de_apoyos = Apoyo.objects.all().order_by('nombre_completo')
+    
     admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'index.html', {'admin': admin})
-    return render(request, 'index.html')
+    
+    # Pasamos la lista de apoyos y el admin al contexto de la plantilla
+    contexto = {
+        'admin': admin,
+        'lista_apoyos': lista_de_apoyos
+    }
+    
+    return render(request, 'index.html', contexto)
 
-@csrf_exempt
+# VISTA PARA CREAR Y ACTUALIZAR APOYOS (VERSIÓN SEGURA)
+@require_POST
 def registrar_apoyo(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)  # ← aquí obtienes los datos JSON
-            nombre_completo= data.get('nombre', '') + ' ' + data.get('apellido', '')
-            telefono = data.get('telefono')
-            dni = data.get('dni')
-            ruc = data.get('ruc')
-            correo= data.get('correo')
-            print("Nombre completo:", nombre_completo)
-            print("Teléfono:", telefono)
-            print("DNI:", dni)
-            print("RUC:", ruc)
-            print("Correo:", correo)
-            nuevo_apoyo = Apoyo(
-                nombre_completo = nombre_completo,
-                telefono = telefono,
-                dni = dni,
-                ruc = ruc,
-                correo= correo
+    # Verificación de seguridad: solo administradores logueados pueden continuar
+    admin = obtener_administrador(request)
+    if not admin:
+        return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        apoyo_id = data.get('id')
+        nombre_completo = f"{data.get('apellidos', '')} {data.get('nombres', '')}".strip()
+
+        # Validación básica de datos
+        if not all([nombre_completo, data.get('dni'), data.get('correo')]):
+            return JsonResponse({'error': 'Nombre, DNI y Correo son campos obligatorios.'}, status=400)
+
+        # Si hay un ID, estamos EDITANDO. Si no, estamos CREANDO.
+        if apoyo_id:
+            # Es una actualización (UPDATE)
+            apoyo = get_object_or_404(Apoyo, pk=apoyo_id)
+            apoyo.nombre_completo = nombre_completo
+            apoyo.telefono = data.get('telefono')
+            apoyo.dni = data.get('dni')
+            apoyo.ruc = data.get('ruc')
+            apoyo.correo = data.get('correo')
+            apoyo.save()
+            return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
+        else:
+            # Es una creación (CREATE)
+            Apoyo.objects.create(
+                nombre_completo=nombre_completo,
+                telefono=data.get('telefono'),
+                dni=data.get('dni'),
+                ruc=data.get('ruc'),
+                correo=data.get('correo')
             )
-            nuevo_apoyo.save()
-            return JsonResponse({'mensaje': 'Apoyo registrado correctamente'})
-        except Exception as e:
-            print("Error al registrar apoyo:", e)
-            return JsonResponse({'error': 'Error en el servidor'}, status=500)
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+            return JsonResponse({'mensaje': 'Apoyo registrado correctamente'}, status=201)
 
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos JSON inválidos'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error en el servidor: {str(e)}'}, status=500)
 
-def promotores (request):
+# VISTA PARA ELIMINAR APOYOS (VERSIÓN SEGURA)
+@require_POST
+def eliminar_apoyo(request, apoyo_id):
+    # Verificación de seguridad
     admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'promotor.html', {'admin': admin})
-    return render(request, 'promotor.html')
+    if not admin:
+        return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
 
-def colegios (request):
-    admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'colegios.html', {'admin': admin})
-    return render(request, 'colegios.html')
+    try:
+        apoyo = get_object_or_404(Apoyo, pk=apoyo_id)
+        apoyo.delete()
+        return JsonResponse({'mensaje': 'Apoyo eliminado correctamente'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
-def asistencia (request):
+# --- OTRAS VISTAS (sin cambios) ---
+def promotores(request):
     admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'asistencia.html', {'admin': admin})
-    return render(request, 'asistencia.html')
+    return render(request, 'promotor.html', {'admin': admin})
 
-def generador (request):
+def colegios(request):
     admin = obtener_administrador(request)
-    if admin:
-        return render(request, 'generador.html', {'admin': admin})
-    return render(request, 'generador.html')
+    return render(request, 'colegios.html', {'admin': admin})
+
+def asistencia(request):
+    admin = obtener_administrador(request)
+    return render(request, 'asistencia.html', {'admin': admin})
+
+def generador(request):
+    admin = obtener_administrador(request)
+    return render(request, 'generador.html', {'admin': admin})

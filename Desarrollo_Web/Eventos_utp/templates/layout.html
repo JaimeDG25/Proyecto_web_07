@@ -1,3 +1,4 @@
+<!-- Desarrollo_Web/Eventos_utp/templates/layout.html (CORREGIDO Y FINAL) -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -17,15 +18,22 @@
     <nav class="barra-navegacion">
         <div class="marca-barra-navegacion">
             <img src="{% static 'img/logoUTP.png' %}" alt="Logo UTP" style="height: 60px; width: 60px;">
-            <span>Eventos de Apoyos / Dias UTPss     / </span>
+            <span>Eventos de Apoyos / Dias UTPss / </span>
         </div>
         <div class="menu-usuario">
-            <button id="botonOpciones" class="boton-opciones" aria-label="Opciones de usuario">           
-                <p class="usuario"> {{ admin.nombre_administrador }} {{ admin.apellido_administrador }}</p>
+            <button id="botonOpciones" class="boton-opciones" aria-label="Opciones de usuario">
+                <p class="usuario">
+                    <!-- ESTRUCTURA CORREGIDA Y MÁS SEGURA PARA MOSTRAR EL NOMBRE -->
+                    {% if admin.nombre_administrador %}
+                    {{ admin.nombre_administrador }} {{ admin.apellido_administrador }}
+                    {% else %}
+                    Usuario
+                    {% endif %}
+                </p>
                 <i class="fas fa-user fa-fw"></i>☰
             </button>
-            <div id="menuDesplegable" class="menu-desplegable oculto">
-                <a href="">⚙ Configuración</a>
+            <div id="menuDesplegable" class="menu-desplegable">
+                <a href="#">⚙ Configuración</a>
                 <a href="{% url 'login_vista' %}">🚪 Salir</a>
             </div>
         </div>
@@ -44,7 +52,12 @@
             </div>
         </main>
     </div>
+
+    <!-- ===== SECCIÓN DE SCRIPTS AL FINAL DEL BODY ===== -->
+    <script src="{% static 'js/layout.js' %}"></script>
+    {% block extra_js %}
+    {% endblock %}
+
 </body>
 
 </html>
-<script src="{% static 'js/layout.js' %}"></script>
