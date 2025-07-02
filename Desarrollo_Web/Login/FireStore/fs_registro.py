@@ -1,4 +1,4 @@
-   
+
 import re
 from ..models import Administrador
 class CN_Administrador():

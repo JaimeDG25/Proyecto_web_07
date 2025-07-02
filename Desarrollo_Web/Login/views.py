@@ -86,6 +86,7 @@ def enviar_registro(request):
         error = CN_Administrador.validar_registro(nombre, apellido, correo, sede)
         if error:
             return JsonResponse({'error': error}, status=400)
+        
         clave_usuario=generar_clave()
         clave_h_usuario=convertir_hash(clave_usuario)
         
