@@ -179,7 +179,7 @@ def registrar_colegio(request):
         colegio_id = data.get('id')
         nombre_completo = f"{data.get('apellidosEncargadoColegio', '')} {data.get('nombreEncargadoColegio', '')}".strip()
         if not all([nombre_completo, promotor_id, data.get('nombreColegio')]):
-            return JsonResponse({'error': 'Soy un piero y no encuentro el error.'}, status=400)
+            return JsonResponse({'error': 'Al parecer no haz llennado todos los campus requeridos.'}, status=400)
         promotor = get_object_or_404(Promotor, pk=promotor_id)
         if colegio_id:
             colegio = get_object_or_404(Colegio, pk=colegio_id)
