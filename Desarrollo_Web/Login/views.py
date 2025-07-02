@@ -42,7 +42,7 @@ def codigo_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
     print(clave_hasheada)
-    resultado=Enviar_correo("garciajhair22@gmail.com",clave_generada)
+    resultado=Enviar_correo("josehuarialva@gmail.com",clave_generada)
     print(resultado)
     request.session['clave_hasheada'] = clave_hasheada
     return render(request,'codigo.html')
@@ -56,7 +56,6 @@ def enviar_codigo(request):
             return render(request, 'registro.html')
         else:
             return render(request, 'codigo.html', {'error': 'Código incorrecto'})
-
     return redirect('codigo_vista') 
 
 

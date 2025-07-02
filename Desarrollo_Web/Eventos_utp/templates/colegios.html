@@ -14,12 +14,9 @@
 {% block content %}
 <div class="contenido-interno">
     <h1>Gestión de Colegios</h1>
-
     <div class="controles-tabla">
-
         <input type="search" class="campo-busqueda-tabla" id="campoBusquedaColegio"
             placeholder="Buscar por nombre, promotor, distrito...">
-
         <button id="btnAbrirModalNuevoColegio" class="boton-primario">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"
                 style="margin-right: 5px; vertical-align: middle;">
@@ -28,9 +25,7 @@
             Registrar Nuevo Colegio
         </button>
     </div>
-
     <div class="contenedor-tabla-responsiva">
-
         <table id="tablaColegios" class="tabla-datos-gestion">
             <thead>
                 <tr>
@@ -44,9 +39,8 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-
             <tbody id="cuerpoTablaColegios">
-
+                <!-- Las filas de colegios se cargarán aquí dinámicamente con JavaScript -->
             </tbody>
         </table>
     </div>
@@ -54,17 +48,13 @@
 
 <div id="modalGestionColegio" class="modal">
     <div class="modal-contenido">
-
         <span class="cerrar-modal" id="btnCerrarModalColegio">×</span>
-
         <h2 id="tituloModalColegio">Registrar Nuevo Colegio</h2>
-
         <form id="formularioColegio">
-
+            {% csrf_token %} <!-- MUY IMPORTANTE: Token CSRF para seguridad en formularios POST -->
             <input type="hidden" id="idColegioEditar">
 
             <div class="grupo-formulario">
-
                 <label for="nombreColegio">Nombre del Colegio:</label>
                 <input type="text" id="nombreColegio" name="nombreColegio" required>
             </div>
@@ -73,58 +63,53 @@
                 <label for="promotorColegio">Promotor:</label>
                 <select id="promotorColegio" name="promotorColegio" required>
                     <option value="">Seleccione un promotor...</option>
-                    <!-- Opciones se cargarán por JS -->
+                    <!-- Opciones se cargarán por Django en la vista GET -->
+                    {% for promotor in promotores %}
+                        <option value="{{ promotor.id }}">{{ promotor.apellidos }}, {{ promotor.nombres }} ({{ promotor.codigo }})</option>
+                    {% endfor %}
                 </select>
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="apellidosEncargadoColegio">Apellidos del Encargado:</label>
                 <input type="text" id="apellidosEncargadoColegio" name="apellidosEncargadoColegio" required>
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="nombreEncargadoColegio">Nombres del Encargado:</label>
                 <input type="text" id="nombreEncargadoColegio" name="nombreEncargadoColegio" required>
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="telefonoEncargadoColegio">Teléfono del Encargado:</label>
                 <input type="tel" id="telefonoEncargadoColegio" name="telefonoEncargadoColegio" pattern="[0-9]{9}"
                     title="Ingrese un número de teléfono válido (9 dígitos)" required>
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="distritoColegio">Distrito:</label>
                 <input type="text" id="distritoColegio" name="distritoColegio" required>
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="linkUbicacionColegio">Link de Ubicación (Google Maps, opcional):</label>
                 <input type="url" id="linkUbicacionColegio" name="linkUbicacionColegio"
                     placeholder="https://maps.app.google.xd/...">
             </div>
 
             <div class="grupo-formulario">
-
                 <label for="archivoBdColegio">Base de Datos (Archivo Excel):</label>
                 <input type="file" id="archivoBdColegio" name="archivoBdColegio" accept=".xlsx, .xls">
                 <small id="nombreArchivoActual" style="display: block; margin-top: 5px; color: #555;"></small>
             </div>
 
-
             <div class="botones-formulario">
-
                 <button type="button" id="btnCancelarModalColegio" class="boton-secundario">Cancelar</button>
-
                 <button type="submit" id="btnGuardarColegio" class="boton-primario">Guardar Colegio</button>
             </div>
         </form>
     </div>
 </div>
+<!-- Carga de tu archivo JavaScript -->
 <script src="{% static 'js/colegio.js' %}"></script>
 {% endblock %}

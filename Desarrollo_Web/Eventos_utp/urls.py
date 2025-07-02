@@ -7,4 +7,7 @@ urlpatterns = [
     path('colegios/',views.colegios, name='colegio_link'),
     path('asistencias/',views.asistencia, name='asistencia_link'),
     path('generadores/',views.generador, name='generador_link'),
+    # Nuevas URLs para la API de colegios
+    path('api/colegios/', views.api_colegios_list, name='api_colegios_list'),
+    path('api/colegios/delete/<int:pk>/', views.api_colegios_delete, name='api_colegios_delete'),
 ]

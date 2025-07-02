@@ -1,5 +1,8 @@
+// --- MENSAJE DE PRUEBA DE CARGA ---
+console.log("¡colegio.js cargado y ejecutándose!"); 
+
 document.addEventListener('DOMContentLoaded', function () {
-    // --- MANEJO DE BARRA LATERAL ---
+    // --- MANEJO DE BARRA LATERAL (se mantiene igual) ---
     const botonInterruptorMenu = document.getElementById('interruptorMenu');
     const elementoBarraLateral = document.getElementById('barraLateral');
 
@@ -25,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- MANEJO DE COLEGIOS ---
+    // --- MANEJO DE COLEGIOS (Refactorizado para interactuar con Django) ---
     const modalGestionColegio = document.getElementById('modalGestionColegio');
     const btnAbrirModalNuevoColegio = document.getElementById('btnAbrirModalNuevoColegio');
     const btnCerrarModalColegio = document.getElementById('btnCerrarModalColegio');
@@ -39,49 +42,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const nombreArchivoActualInfo = document.getElementById('nombreArchivoActual');
     const selectPromotorColegio = document.getElementById('promotorColegio'); // Elemento select para promotores
 
-    //  datos de ejemplo 
-    let listaDeColegios = JSON.parse(localStorage.getItem('listaDeColegiosUTP')) || [
-        { id: 1, nombre: "Colegio Innova Schools", promotorId: "1", apellidosEncargado: "García", nombreEncargado: "Luis", telefonoEncargado: "999888777", distrito: "Miraflores", linkUbicacion: "https://maps.app.goo.gl/ejemplo1", nombreArchivoBd: "base_datos_innova.xlsx" },
-        { id: 2, nombre: "IE Emblemático Alfonso Ugarte", promotorId: "2", apellidosEncargado: "Martínez", nombreEncargado: "Ana", telefonoEncargado: "911222333", distrito: "San Isidro", linkUbicacion: "https://maps.app.goo.gl/ejemplo2", nombreArchivoBd: "matriculados_ugarte.xls" }
-    ];
-
-    let listaDePromotoresGlobal = JSON.parse(localStorage.getItem('listaDePromotoresUTP')) || [];
-
-    let proximoIdColegio = listaDeColegios.length > 0 ? Math.max(...listaDeColegios.map(c => c.id)) + 1 : 1;
-    let idColegioEnEdicion = null;
-    let archivoSeleccionado = null;
-
-    function guardarColegiosEnLocalStorage() {
-        localStorage.setItem('listaDeColegiosUTP', JSON.stringify(listaDeColegios));
-    }
-
-    function actualizarListaPromotoresGlobal() {
-        listaDePromotoresGlobal = JSON.parse(localStorage.getItem('listaDePromotoresUTP')) || [];
-    }
-
-    // --- FUNCIONES PARA PROMOTORES EN EL SELECT ---
-    function cargarPromotoresEnSelect() {
-        if (!selectPromotorColegio) return;
-
-        actualizarListaPromotoresGlobal(); // Asegurar que tenemos la lista más reciente
-        selectPromotorColegio.innerHTML = '<option value="">Seleccione un promotor...</option>';
-
-        if (listaDePromotoresGlobal.length > 0) {
-            listaDePromotoresGlobal.forEach(promotor => {
-                const option = document.createElement('option');
-                option.value = promotor.id.toString(); // Guardar el ID del promotor como valor
-                option.textContent = `${promotor.apellidos}, ${promotor.nombres} (${promotor.codigo})`;
-                selectPromotorColegio.appendChild(option);
-            });
-        } else {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay promotores registrados";
-            option.disabled = true;
-            selectPromotorColegio.appendChild(option);
+    // Obtener el token CSRF para las solicitudes AJAX
+    const getCsrfToken = () => {
+        // Asegúrate de que el input oculto con el token CSRF esté en tu formulario HTML
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            return csrfInput.value;
         }
-    }
-
+        console.error("CSRF token no encontrado. Asegúrate de incluir {% csrf_token %} en tu formulario.");
+        return '';
+    };
 
     // --- FUNCIONES DEL MODAL DE COLEGIO ---
     function abrirModal(modo = 'nuevo', colegio = null) {
@@ -92,27 +62,27 @@ document.addEventListener('DOMContentLoaded', function () {
         formularioColegio.reset();
         nombreArchivoActualInfo.textContent = '';
         nombreArchivoActualInfo.style.display = 'none';
-        idColegioEnEdicion = null;
-        idColegioEditarInput.value = '';
-        archivoSeleccionado = null;
-        inputFileBd.value = null;
+        idColegioEditarInput.value = ''; // Limpiar el ID oculto
 
-        cargarPromotoresEnSelect(); // Cargar promotores en el select
+        // Reiniciar el input de archivo
+        inputFileBd.value = null;
 
         if (modo === 'editar' && colegio) {
             tituloModalColegio.textContent = 'Editar Colegio';
-            idColegioEnEdicion = colegio.id;
-            idColegioEditarInput.value = colegio.id;
+            idColegioEditarInput.value = colegio.id; // Establecer el ID para edición
             document.getElementById('nombreColegio').value = colegio.nombre;
-            selectPromotorColegio.value = colegio.promotorId || ''; // Seleccionar el promotor guardado
-            document.getElementById('apellidosEncargadoColegio').value = colegio.apellidosEncargado;
-            document.getElementById('nombreEncargadoColegio').value = colegio.nombreEncargado;
-            document.getElementById('telefonoEncargadoColegio').value = colegio.telefonoEncargado;
+            // Asegúrate de que el select de promotores ya esté poblado por Django en el HTML
+            if (selectPromotorColegio) {
+                selectPromotorColegio.value = colegio.promotor_id || ''; // Seleccionar el promotor guardado
+            }
+            document.getElementById('apellidosEncargadoColegio').value = colegio.apellidos_encargado;
+            document.getElementById('nombreEncargadoColegio').value = colegio.nombres_encargado;
+            document.getElementById('telefonoEncargadoColegio').value = colegio.telefono_encargado;
             document.getElementById('distritoColegio').value = colegio.distrito;
-            document.getElementById('linkUbicacionColegio').value = colegio.linkUbicacion || '';
+            document.getElementById('linkUbicacionColegio').value = colegio.link_ubicacion || '';
 
-            if (colegio.nombreArchivoBd) {
-                nombreArchivoActualInfo.textContent = `Archivo actual: ${colegio.nombreArchivoBd}`;
+            if (colegio.archivo_excel_name) { // Usar el nombre del archivo del backend
+                nombreArchivoActualInfo.textContent = `Archivo actual: ${colegio.archivo_excel_name}`;
                 nombreArchivoActualInfo.style.display = 'block';
             }
         } else {
@@ -125,10 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!modalGestionColegio || !formularioColegio) return;
         modalGestionColegio.style.display = 'none';
         formularioColegio.reset();
-        idColegioEnEdicion = null;
-        idColegioEditarInput.value = '';
-        archivoSeleccionado = null;
-        if (inputFileBd) inputFileBd.value = null;
+        idColegioEditarInput.value = ''; // Limpiar el ID oculto
+        if (inputFileBd) inputFileBd.value = null; // Limpiar el input de archivo
         if (nombreArchivoActualInfo) {
             nombreArchivoActualInfo.textContent = '';
             nombreArchivoActualInfo.style.display = 'none';
@@ -153,14 +121,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (inputFileBd) {
         inputFileBd.addEventListener('change', function (evento) {
             if (evento.target.files.length > 0) {
-                archivoSeleccionado = evento.target.files[0];
+                const archivoSeleccionado = evento.target.files[0];
                 nombreArchivoActualInfo.textContent = `Archivo seleccionado: ${archivoSeleccionado.name}`;
                 nombreArchivoActualInfo.style.display = 'block';
             } else {
-                archivoSeleccionado = null;
-                const colegioActual = idColegioEnEdicion ? listaDeColegios.find(c => c.id === idColegioEnEdicion) : null;
-                if (colegioActual && colegioActual.nombreArchivoBd) {
-                    nombreArchivoActualInfo.textContent = `Archivo actual: ${colegioActual.nombreArchivoBd}`;
+                // Si se deselecciona el archivo, mostrar el nombre del archivo actual si estamos editando
+                const colegioId = idColegioEditarInput.value;
+                if (colegioId) {
+                    // Para simplificar, si se deselecciona, asumimos que no hay nuevo archivo
+                    // y el backend mantendrá el anterior si es una edición.
+                    nombreArchivoActualInfo.textContent = 'No se ha seleccionado un nuevo archivo.';
                     nombreArchivoActualInfo.style.display = 'block';
                 } else {
                     nombreArchivoActualInfo.textContent = '';
@@ -170,12 +140,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- RENDERIZAR TABLA DE COLEGIOS ---
-    function renderizarTablaColegios(colegiosParaMostrar = listaDeColegios) {
+    // --- RENDERIZAR TABLA DE COLEGIOS (Ahora con datos del backend) ---
+    function renderizarTablaColegios(colegiosParaMostrar = []) {
         if (!cuerpoTablaColegios) return;
         cuerpoTablaColegios.innerHTML = '';
-
-        actualizarListaPromotoresGlobal();
 
         if (colegiosParaMostrar.length === 0) {
             const filaVacia = cuerpoTablaColegios.insertRow();
@@ -191,21 +159,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const fila = cuerpoTablaColegios.insertRow();
             fila.insertCell().textContent = colegio.nombre;
 
-            // Buscar info del promotor para mostrar nombre en lugar de ID
-            const promotorDelColegio = listaDePromotoresGlobal.find(p => p.id.toString() === colegio.promotorId);
-            const textoPromotor = promotorDelColegio
-                ? `${promotorDelColegio.apellidos}, ${promotorDelColegio.nombres} (${promotorDelColegio.codigo})`
-                : (colegio.promotorId ? `ID Promotor: ${colegio.promotorId} (No encontrado)` : '-');
-            fila.insertCell().textContent = textoPromotor;
+            // El promotor_nombre_completo ya viene del backend
+            fila.insertCell().textContent = colegio.promotor_nombre_completo || '-';
 
-            fila.insertCell().textContent = `${colegio.apellidosEncargado}, ${colegio.nombreEncargado}`;
-            fila.insertCell().textContent = colegio.telefonoEncargado;
+            fila.insertCell().textContent = `${colegio.apellidos_encargado}, ${colegio.nombres_encargado}`;
+            fila.insertCell().textContent = colegio.telefono_encargado;
             fila.insertCell().textContent = colegio.distrito;
 
             const celdaUbicacion = fila.insertCell();
-            if (colegio.linkUbicacion) {
+            if (colegio.link_ubicacion) {
                 const enlace = document.createElement('a');
-                enlace.href = colegio.linkUbicacion;
+                enlace.href = colegio.link_ubicacion;
                 enlace.textContent = 'Ver Mapa';
                 enlace.target = '_blank';
                 enlace.rel = 'noopener noreferrer';
@@ -214,7 +178,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 celdaUbicacion.textContent = '-';
             }
 
-            fila.insertCell().textContent = colegio.nombreArchivoBd || 'No adjunto';
+            const celdaArchivo = fila.insertCell();
+            if (colegio.archivo_excel_url) {
+                const enlaceArchivo = document.createElement('a');
+                enlaceArchivo.href = colegio.archivo_excel_url;
+                enlaceArchivo.textContent = colegio.archivo_excel_name || 'Descargar';
+                enlaceArchivo.target = '_blank';
+                enlaceArchivo.rel = 'noopener noreferrer';
+                celdaArchivo.appendChild(enlaceArchivo);
+            } else {
+                celdaArchivo.textContent = 'No adjunto';
+            }
+
 
             const celdaAcciones = fila.insertCell();
             celdaAcciones.style.whiteSpace = 'nowrap';
@@ -233,82 +208,123 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- MANEJO DEL FORMULARIO  ---
+    // --- CARGAR COLEGIOS DESDE EL BACKEND ---
+    async function cargarColegios(searchTerm = '') {
+        try {
+            const url = searchTerm ? `/Evento/api/colegios/?search=${encodeURIComponent(searchTerm)}` : '/Evento/api/colegios/';
+            console.log("Intentando cargar colegios desde:", url); // Log de la URL de la API
+            const response = await fetch(url);
+            
+            if (!response.ok) { // Verifica si la respuesta HTTP fue exitosa (código 2xx)
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log("Datos recibidos de la API:", data); // Log de los datos recibidos
+
+            if (data.success) {
+                renderizarTablaColegios(data.colegios);
+            } else {
+                console.error('Error al cargar colegios (API response):', data.message);
+                alert('Error al cargar colegios: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error de red o JSON al cargar colegios:', error);
+            alert('Ocurrió un error de red o al procesar los datos de los colegios.');
+        }
+    }
+
+    // --- MANEJO DEL FORMULARIO (Crear/Editar) ---
     if (formularioColegio) {
-        formularioColegio.addEventListener('submit', function (evento) {
+        formularioColegio.addEventListener('submit', async function (evento) {
             evento.preventDefault();
 
-            const datosColegio = {
-                nombre: document.getElementById('nombreColegio').value.trim(),
-                promotorId: selectPromotorColegio.value, // Guardar el ID del promotor
-                apellidosEncargado: document.getElementById('apellidosEncargadoColegio').value.trim(),
-                nombreEncargado: document.getElementById('nombreEncargadoColegio').value.trim(),
-                telefonoEncargado: document.getElementById('telefonoEncargadoColegio').value.trim(),
-                distrito: document.getElementById('distritoColegio').value.trim(),
-                linkUbicacion: document.getElementById('linkUbicacionColegio').value.trim() || null,
-                nombreArchivoBd: archivoSeleccionado
-                    ? archivoSeleccionado.name
-                    : (idColegioEnEdicion
-                        ? listaDeColegios.find(c => c.id === idColegioEnEdicion)?.nombreArchivoBd
-                        : null)
-            };
-
-            if (!datosColegio.nombre || !datosColegio.promotorId || !datosColegio.apellidosEncargado || !datosColegio.nombreEncargado || !datosColegio.telefonoEncargado || !datosColegio.distrito) {
-                alert('Por favor, complete los campos obligatorios: Nombre Colegio, Promotor, Apellidos Encargado, Nombres Encargado, Teléfono Encargado y Distrito.');
+            const formData = new FormData(formularioColegio);
+            const csrfToken = getCsrfToken();
+            if (csrfToken) {
+                formData.append('csrfmiddlewaretoken', csrfToken); // Añadir el token CSRF
+            } else {
+                alert("Error de seguridad: CSRF token no encontrado. La solicitud no se enviará.");
                 return;
             }
 
-            if (idColegioEnEdicion !== null) {
-                const indice = listaDeColegios.findIndex(c => c.id === idColegioEnEdicion);
-                if (indice !== -1) {
-                    listaDeColegios[indice] = { ...listaDeColegios[indice], ...datosColegio, id: idColegioEnEdicion };
-                }
-            } else {
-                datosColegio.id = proximoIdColegio++;
-                listaDeColegios.push(datosColegio);
-            }
+            const url = '/Evento/colegios/'; // La misma URL de la vista de colegios
+            console.log("Intentando guardar colegio en:", url); // Log de la URL de guardado
 
-            guardarColegiosEnLocalStorage();
-            idColegioEnEdicion = null;
-            archivoSeleccionado = null;
-            renderizarTablaColegios();
-            cerrarModal();
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData, // FormData se encarga de Content-Type: multipart/form-data
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log("Respuesta de guardado:", data);
+
+                if (data.success) {
+                    alert(data.message); 
+                    cerrarModal();
+                    cargarColegios(campoBusquedaColegio.value); // Recargar la tabla con la búsqueda actual
+                } else {
+                    alert('Error al guardar el colegio: ' + data.message); 
+                }
+            } catch (error) {
+                console.error('Error en la solicitud AJAX (guardar colegio):', error);
+                alert('Ocurrió un error de red o del servidor al guardar el colegio.');
+            }
         });
     }
 
-    // --- ELIMINAR COLE ---
-    function eliminarColegio(idColegio) {
+    // --- ELIMINAR COLEGIOS ---
+    async function eliminarColegio(idColegio) {
         if (confirm('¿Está seguro de que desea eliminar este colegio? Esta acción no se puede deshacer.')) {
-            listaDeColegios = listaDeColegios.filter(colegio => colegio.id !== idColegio);
-            guardarColegiosEnLocalStorage();
-            renderizarTablaColegios();
+            try {
+                const url = `/Evento/api/colegios/delete/${idColegio}/`;
+                console.log("Intentando eliminar colegio en:", url); // Log de la URL de eliminación
+                const response = await fetch(url, {
+                    method: 'POST', 
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(), // Enviar CSRF para DELETE/POST
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({}) 
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log("Respuesta de eliminación:", data);
+
+                if (data.success) {
+                    alert(data.message);
+                    cargarColegios(campoBusquedaColegio.value); 
+                } else {
+                    alert('Error al eliminar el colegio: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error en la solicitud AJAX (eliminar colegio):', error);
+                alert('Ocurrió un error de red o del servidor al eliminar el colegio.');
+            }
         }
     }
 
     // --- BUSQUEDA DE COLEGIOS ---
     if (campoBusquedaColegio) {
         campoBusquedaColegio.addEventListener('input', function (evento) {
-            const terminoBusqueda = evento.target.value.toLowerCase().trim();
-            actualizarListaPromotoresGlobal();
-
-            const colegiosFiltrados = listaDeColegios.filter(colegio => {
-                const nombre = colegio.nombre.toLowerCase();
-                const promotorDelColegio = listaDePromotoresGlobal.find(p => p.id.toString() === colegio.promotorId);
-                const textoPromotor = promotorDelColegio
-                    ? `${promotorDelColegio.apellidos} ${promotorDelColegio.nombres} ${promotorDelColegio.codigo}`.toLowerCase()
-                    : '';
-                const encargado = `${colegio.apellidosEncargado} ${colegio.nombreEncargado}`.toLowerCase();
-                const distrito = colegio.distrito.toLowerCase();
-
-                return nombre.includes(terminoBusqueda) ||
-                    textoPromotor.includes(terminoBusqueda) ||
-                    encargado.includes(terminoBusqueda) ||
-                    distrito.includes(terminoBusqueda);
-            });
-            renderizarTablaColegios(colegiosFiltrados);
+            const terminoBusqueda = evento.target.value.trim();
+            cargarColegios(terminoBusqueda); 
         });
     }
 
-    actualizarListaPromotoresGlobal();
-    renderizarTablaColegios();
+    // --- INICIALIZACIÓN ---
+    // Cargar colegios al inicio
+    cargarColegios();
 });

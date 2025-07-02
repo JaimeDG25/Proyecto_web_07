@@ -12,11 +12,12 @@ def Enviar_correo(correo_destino,codigo_especial):
             # Configuración del servidor SMTP
             servidor = smtplib.SMTP("smtp.gmail.com", 587)
             servidor.starttls()
-            servidor.login("garciajhair22@gmail.com", "ksjv slni uuro bzdz")  # Usa contraseña de aplicación segura
+            servidor.login("josehuarialva@gmail.com", "erum rtmc eeke fcij")  # Usa contraseña de aplicación segura
             #ksjv slni uuro bzdz
             # Crear el mensaje
+            #contraseña de mierda : 5a16bb de correo nuevo
             msg = MIMEMultipart()  # Utilizar MIMEMultipart para incluir asunto y cuerpo del correo
-            msg["From"] = "garciajhair22@gmail.com"
+            msg["From"] = "josehuarialva@gmail.com"
             msg["To"] = correo
             msg["Subject"] = asunto  # Asignar el asunto correctamente
 
@@ -26,9 +27,8 @@ def Enviar_correo(correo_destino,codigo_especial):
             msg.attach(MIMEText(cuerpo_mensaje, "plain"))
 
             # Enviar el correo
-            servidor.sendmail("garciajhair22@gmail.com", correo, msg.as_string())
+            servidor.sendmail("josehuarialva@gmail.com", correo, msg.as_string())
             servidor.quit()
-
             return "Mensaje enviado con éxito"
     
     except Exception as e:

@@ -12,7 +12,7 @@ class Administradores(models.Model):
     fcreacion_administrador = models.DateField(auto_now_add=True)
     sede_administrador = models.CharField(max_length=100)
 
-class Administrador(models.Model):
+class Administrador(models.Model): #a
     id_administrador = models.AutoField(primary_key=True)
     nombre_administrador = models.CharField(max_length=100)
     apellido_administrador = models.CharField(max_length=100)
@@ -31,3 +31,4 @@ class Tarea(models.Model):
         verbose_name = 'Tarea'
         verbose_name_plural = 'Tareas'
         db_table = 'Tarea'
+
