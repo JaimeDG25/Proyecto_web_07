@@ -16,7 +16,7 @@
         <div class="modal">
             <h2>Registrar Administrativos</h2>
             <div id="errorMensaje" style="color: red; display: none;"></div>
-            <form action="" method="POST">
+            <form action="/Login/enviar_registro" method="POST">
                 {% csrf_token %}
                 <div class="input-group">
                     <div class="input-col">
@@ -107,18 +107,17 @@
         })
         .then(response => response.json())
         .then(data => {
-            console.log("Datos recibidos correctamente")
-            nombre = ''
-            apellido = ''
-            correo = ''
-            console.log('Respuesta:', data);
+        console.log("Datos recibidos correctamente");
+        console.log('Respuesta:', data);
+        if (data.success) {
             return;
-            // puedes limpiar el formulario aquí si quieres
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            errorDiv.textContent = 'Ocurrió un error de red.';
+        } else if (data.error) {
+            errorDiv.textContent = data.error;
             errorDiv.style.display = 'block';
-        });
+        } else {
+            errorDiv.textContent = 'Ocurrió un error inesperado.';
+            errorDiv.style.display = 'block';
+        }
+    });
     }
 </script>
