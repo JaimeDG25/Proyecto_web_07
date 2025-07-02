@@ -15,6 +15,7 @@
     <div class="overlay">
         <div class="modal">
             <h2>Registrar Administrativos</h2>
+            <div id="errorMensaje" style="color: red; display: none;"></div>
             <form action="" method="POST">
                 {% csrf_token %}
                 <div class="input-group">
@@ -66,7 +67,7 @@
             </form>
             <div class="centrar-boton">
                 <a href="{% url 'login_vista' %}" class="boton-enlace">
-                    <strong class="boton-enlace">Registrar al Login</strong>
+                    <strong class="boton-enlace">Regresar al Login</strong>
                 </a>
             </div>
         </div>
@@ -77,6 +78,7 @@
 <script>
     function Enviar(){
         event.preventDefault(); 
+        const errorDiv = document.getElementById('errorMensaje');
         var nombre = document.getElementById("nombre").value
         var apellido = document.getElementById("apellido").value
         var correo = document.getElementById("correo").value
@@ -105,13 +107,18 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log("Datos recibidos correctamente")
+            nombre = ''
+            apellido = ''
+            correo = ''
             console.log('Respuesta:', data);
-            alert('Administrador registrado con éxito');
+            return;
             // puedes limpiar el formulario aquí si quieres
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al registrar administrador');
+            errorDiv.textContent = 'Ocurrió un error de red.';
+            errorDiv.style.display = 'block';
         });
     }
 </script>

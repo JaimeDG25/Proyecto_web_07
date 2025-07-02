@@ -3,18 +3,20 @@ from django.http import HttpResponse
 from .models import Administrador
 from .Sources.src_contraseña import generar_clave,convertir_hash
 from .Sources.src_enviar_correo import Enviar_correo
+from .FireStore.fs_registro import CN_Administrador
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 
-# Vista generada para el login inicial del administrador.
+#============================= Vista generada para el login inicial del administrador ================================
+#Vista para Renderizar el login
 def login (request):
     usuarios = Administrador.objects.all()
     for user in usuarios:
         print(user.id_administrador)
         print(user.correo_administrador)
         print(user.contraseña_administrador)
-    return render(request, 'login.html',{'superuser':usuarios})
+    return render(request, 'login.html')
 
 #Vista generada para redireccionar de regreso al login
 def redirigir_a_login(request):
@@ -30,8 +32,9 @@ def enviar_datos(request):
                 correo_administrador=correo,
                 contraseña_administrador=convertir_hash(contraseña)
             )
-            request.session['correo_administrador'] = correo
-            return redirect('index_link')
+            if existe:
+                request.session['correo_administrador'] = correo
+                return redirect('index_link')
         except Administrador.DoesNotExist:
             # Opcional: mensaje de error
             return render(request, 'login.html', {'error': 'Credenciales incorrectas'})
@@ -40,14 +43,14 @@ def enviar_datos(request):
 #Metodo para cerrar session
 def cerrar_sesion(request):
     return render(request, 'login.html')
+#=====================================================================================================================
 
+#============================= Vista generada para el login inicial del administrador ================================
 #Metodo para dirigir a la vista y enviar una clave al jefe admin
 def codigo_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
-    print(clave_hasheada)
-    resultado=Enviar_correo("garciajhair22@gmail.com",clave_generada)
-    print(resultado)
+    Enviar_correo("garciajhair22@gmail.com",clave_generada)
     request.session['clave_hasheada'] = clave_hasheada
     return render(request,'codigo.html')
 
@@ -62,28 +65,32 @@ def enviar_codigo(request):
         else:
             return render(request, 'codigo.html', {'error': 'Código incorrecto'})
     return redirect('codigo_vista') 
+#=====================================================================================================================
 
+#============================= Vista generada para el login inicial del administrador ================================
 #Metodo para dirigir a la vista de registro
 def registro_vista(request):
     clave_generada=generar_clave()
     clave_hasheada=convertir_hash(clave_generada)
-    print(clave_hasheada)
     return render(request, 'registro.html',{'clave_generada':clave_generada,'clave_hasheada':clave_hasheada})
-
 
 @csrf_exempt 
 def enviar_registro(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        data = json.loads(request.body)   
         nombre = data.get('nombre')
         apellido = data.get('apellido')
         correo = data.get('correo')
         sede = data.get('sede')
-        print("Datos recibidos:")
-        print(nombre, apellido, correo, sede)
+
+        error = CN_Administrador.validar_registro(nombre, apellido, correo, sede)
+        if error:
+            return JsonResponse({'error': error}, status=400)
         clave_usuario=generar_clave()
         clave_h_usuario=convertir_hash(clave_usuario)
+        
         Enviar_correo(correo,clave_usuario)
+        
         nuevo_admin = Administrador(
             nombre_administrador=nombre,
             apellido_administrador=apellido,
@@ -94,3 +101,4 @@ def enviar_registro(request):
         nuevo_admin.save()
         return JsonResponse({'mensaje': 'Administrador registrado correctamente'})
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+#=====================================================================================================================

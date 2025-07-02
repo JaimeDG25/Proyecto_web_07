@@ -67,7 +67,11 @@
                             data-codigo="{{ promotor.codigo_promotor }}">
                             Editar
                         </button>
-                        
+                        <button class="boton-accion boton-eliminar" 
+                            data-nombre="{{ promotor.nombre_completo_promotor }}"
+                            data-url="{% url 'eliminar_promotor' promotor.id %}">
+                            Eliminars
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
@@ -86,7 +90,7 @@
         <h2 id="tituloModalPromotor">Registrar Nuevo Promotor</h2>
         <form id="formularioPromotor" method="POST" novalidate>
             {% csrf_token %}
-            <input type="hidden" id="idPromotorEditar">
+            <input type="hidden" id="idPromotorEditar" name="id">
             <div class="grupo-formulario">
                 <label for="apellidosPromotor">Apellidos del Promotor:</label>
                 <input type="text" id="apellidosPromotor" name="apellidosPromotor" required>
@@ -192,6 +196,29 @@
                 document.getElementById('correoPromotor').value = data.correo;
                 abrirModal();
                 console.log(data)
+            });
+        });
+        //HACIENDO UNA SOLICITUD FECTH A LA RUTA ELIMINAR
+        document.querySelectorAll('.boton-eliminar').forEach(button => {
+            button.addEventListener('click', function () {
+                const promotorNombre = this.dataset.nombre;
+                const url = this.dataset.url;
+                if (confirm(`¿Está seguro de que desea eliminar a "${promotorNombre}"?`)) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                    })
+                        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                        .then(({ ok, data }) => {
+                            if (!ok) throw new Error(data.error || 'Error del servidor');
+                            alert(data.mensaje);
+                            location.reload();
+                        })
+                        .catch(error => {
+                            console.error('Error al eliminar:', error);
+                            alert('Ocurrió un error al eliminar: ' + error.message);
+                        });
+                }
             });
         });
         //FUNCION PARA EL CAMPO DE BUSQUEDA

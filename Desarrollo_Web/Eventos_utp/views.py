@@ -42,6 +42,7 @@ def registrar_apoyo(request):
     try:
         data = json.loads(request.body)
         apoyo_id = data.get('id')
+        print("toma tu id",apoyo_id)
         nombre_completo = f"{data.get('apellidos', '')} {data.get('nombres', '')}".strip()
         if not all([nombre_completo, data.get('dni'), data.get('correo')]):
             return JsonResponse({'error': 'Nombre, DNI y Correo son campos obligatorios.'}, status=400)
@@ -104,16 +105,33 @@ def registrar_promotor(request):
         nombre_completo = f"{data.get('apellidosPromotor', '')} {data.get('nombresPromotor', '')}".strip()
         if not all([nombre_completo, data.get('dniPromotor'), data.get('correoPromotor')]):
             return JsonResponse({'error': 'Nombre, DNI y Correo son campos obligatorios.'}, status=400)
+        print("toma tu id",promotor_id)
         if promotor_id:
             promotor = get_object_or_404(Promotor, pk=promotor_id)
+            nuevo_dni = data.get('dniPromotor')
+            nuevo_correo = data.get('correoPromotor')
+
+            # Evitar conflictos de duplicado al editar
+            if Promotor.objects.exclude(pk=promotor_id).filter(dni_promotor=nuevo_dni).exists():
+                return JsonResponse({'error': f'Ya existe un promotor con el DNI {nuevo_dni}.'}, status=400)
+            if Promotor.objects.exclude(pk=promotor_id).filter(correo_promotor=nuevo_correo).exists():
+                return JsonResponse({'error': f'Ya existe un promotor con el correo {nuevo_correo}.'}, status=400)
+
+            # Si no hay conflictos, se actualiza
             promotor.nombre_completo_promotor = nombre_completo
             promotor.telefono_promotor = data.get('telefonoPromotor')
-            promotor.dni_promotor = data.get('dniPromotor')
+            promotor.dni_promotor = nuevo_dni
             promotor.codigo_promotor = data.get('codigoPromotor')
-            promotor.correo_promotor = data.get('correoPromotor')
+            promotor.correo_promotor = nuevo_correo
             promotor.save()
             return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
         else:
+            dni = data.get('dniPromotor')
+            correo = data.get('correoPromotor')
+            if Promotor.objects.filter(dni_promotor=dni).exists():
+                return JsonResponse({'error': f'Ya existe un promotor registrado con el DNI {dni}.'}, status=400)
+            if Promotor.objects.filter(correo_promotor=correo).exists():
+                return JsonResponse({'error': f'Ya existe un promotor registrado con el correo {correo}.'}, status=400)
             Promotor.objects.create(
                 nombre_completo_promotor=nombre_completo,
                 telefono_promotor=data.get('telefonoPromotor'),
@@ -126,6 +144,19 @@ def registrar_promotor(request):
         return JsonResponse({'error': 'Datos JSON inválidos'}, status=400)
     except Exception as e:
         return JsonResponse({'error': f'Error en el servidor: {str(e)}'}, status=500)
+    
+# VISTA PARA ELIMINAR APOYOS (VERSIÓN SEGURA)
+@require_POST
+def eliminar_promotor(request, promotor_id):
+    admin = obtener_administrador(request)
+    if not admin:
+        return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
+    try:
+        promotor = get_object_or_404(Promotor, pk=promotor_id)
+        promotor.delete()
+        return JsonResponse({'mensaje': 'Apoyo eliminado correctamente'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 #==============================================================================================================
 
 #==============================================================================================================
