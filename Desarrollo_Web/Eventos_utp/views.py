@@ -131,8 +131,51 @@ def registrar_promotor(request):
 #==============================================================================================================
 #===================================== VISTA PARA GENERAR COLEGIOS ============================================
 def colegios(request):
+    lista_de_colegios = Colegio.objects.all().order_by('nombre_colegio')
     admin = obtener_administrador(request)
-    return render(request, 'colegios.html', {'admin': admin})
+    lista_de_promotores = Promotor.objects.all()
+    return render(request, 'colegios.html', {'admin': admin, 'promotores_list': lista_de_promotores, 'lista_colegios':lista_de_colegios})
+# VISTA PARA CREAR Y ACTUALIZAR APOYOS (VERSIÓN SEGURA)
+@require_POST
+def registrar_colegio(request):
+    admin = obtener_administrador(request)
+    if not admin:
+        return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
+    try:
+        data = json.loads(request.body)
+        promotor_id = data.get('promotorColegio')
+        print(data)
+        colegio_id = data.get('id')
+        nombre_completo = f"{data.get('apellidosEncargadoColegio', '')} {data.get('nombreEncargadoColegio', '')}".strip()
+        if not all([nombre_completo, promotor_id, data.get('nombreColegio')]):
+            return JsonResponse({'error': 'Soy un piero y no encuentro el error.'}, status=400)
+        promotor = get_object_or_404(Promotor, pk=promotor_id)
+        if colegio_id:
+            colegio = get_object_or_404(Colegio, pk=colegio_id)
+            colegio.nombre_colegio = data.get('nombreColegio')
+            colegio.promotor_colegio = promotor
+            colegio.nombre_completo_encargado_colegio = nombre_completo
+            colegio.telefono_encargado_colegio = data.get('telefonoEncargadoColegio')
+            colegio.distrito_colegio = data.get('distritoColegio')
+            colegio.link_ubicacion_colegio = data.get('linkUbicacionColegio')
+            colegio.archivo_excel_colegio = data.get('archivoBdColegio')
+            colegio.save()
+            return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
+        else:
+            Colegio.objects.create(
+                nombre_colegio=data.get('nombreColegio'),
+                promotor_colegio=promotor,
+                nombre_completo_encargado_colegio=nombre_completo,
+                telefono_encargado_colegio= data.get('telefonoEncargadoColegio'),
+                distrito_colegio= data.get('distritoColegio'),
+                link_ubicacion_colegio= data.get('linkUbicacionColegio'),
+                archivo_excel_colegio= data.get('archivoBdColegio')
+            )
+            return JsonResponse({'mensaje': 'Apoyo registrado correctamente'}, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos JSON inválidos'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error en el servidor: {str(e)}'}, status=500)
 #==============================================================================================================
 
 #==============================================================================================================

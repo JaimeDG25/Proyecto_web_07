@@ -12,6 +12,7 @@ urlpatterns = [
     path('registrar_promotor/', views.registrar_promotor, name='registrar_promotor'),
     #path('eliminar_promotor/<int:promotor_id>/', views.eliminar_promotor, name='eliminar_promotor'),
     path('colegios/', views.colegios, name='colegio_link'),
+    path('registrar_colegio/', views.registrar_colegio, name='registrar_colegio'),
     path('asistencias/', views.asistencia, name='asistencia_link'),
     path('generadores/', views.generador, name='generador_link'),
 ]

@@ -28,7 +28,15 @@
             Registrar Nuevo Colegio
         </button>
     </div>
-
+    {% if admin %}
+    <div class="perfil-admin-contenedor"
+        style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+        <h3 style="margin-top: 0;">Perfil del Administrador</h3>
+        <p><strong>ID:</strong> {{ admin.id_administrador }}</p>
+        <p><strong>Correo:</strong> {{ admin.correo_administrador }}</p>
+        <p><strong>Sede:</strong> {{ admin.sede_administrador }}</p>
+    </div>
+    {% endif %}
     <div class="contenedor-tabla-responsiva">
 
         <table id="tablaColegios" class="tabla-datos-gestion">
@@ -44,9 +52,34 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-
             <tbody id="cuerpoTablaColegios">
-
+                {% for colegio in lista_colegios %}
+                <tr class="fila-apoyo">
+                    <td>{{ colegio.nombre_colegio }}</td>
+                    <td>{{ colegio.promotor_colegio}}</td>
+                    <td>{{ colegio.nombre_completo_encargado_colegio}}</td>
+                    <td>{{ colegio.telefono_encargado_colegio }}</td>
+                    <td>{{ colegio.distrito_colegio}}</td>
+                    <td>{{ colegio.link_ubicacion_colegio}}</td>
+                    <td>{{ colegio.archivo_excel_colegio}}</td>
+                    <td>
+                        <button class="boton-accion boton-editar" 
+                            data-id="{{ promotor.id }}"
+                            data-nombre_completo="{{ promotor.nombre_completo_promotor }}" 
+                            data-telefono="{{ promotor.telefono_promotor }}"
+                            data-dni="{{ promotor.dni_promotor}}" 
+                            data-correo="{{ promotor.correo_promotor }}" 
+                            data-codigo="{{ promotor.codigo_promotor }}">
+                            Editar
+                        </button>
+                        
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No hay apoyos registrados.</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -59,8 +92,8 @@
 
         <h2 id="tituloModalColegio">Registrar Nuevo Colegio</h2>
 
-        <form id="formularioColegio">
-
+        <form id="formularioColegio" method="POST" novalidate>
+            {% csrf_token %}
             <input type="hidden" id="idColegioEditar">
 
             <div class="grupo-formulario">
@@ -73,7 +106,9 @@
                 <label for="promotorColegio">Promotor:</label>
                 <select id="promotorColegio" name="promotorColegio" required>
                     <option value="">Seleccione un promotor...</option>
-                    <!-- Opciones se cargarán por JS -->
+                    {%for prom in promotores_list%}
+                        <option value="{{ prom.id }}">{{ prom.nombre_completo_promotor }}</option>
+                    {%endfor%}
                 </select>
             </div>
 
@@ -126,5 +161,88 @@
         </form>
     </div>
 </div>
-<script src="{% static 'js/colegio.js' %}"></script>
+<!-- <script src="{% static 'js/colegio.js' %}"></script> -->
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('modalGestionColegio');
+        const form = document.getElementById('formularioColegio');
+        const tituloModal = document.getElementById('tituloModalColegio');
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        //FUNCION PARA ABRIR EL MODAL 
+        function abrirModal() {
+            modal.style.display = 'block';
+        }
+        //FUNCION PARA CERRAR EL MODAL 
+        function cerrarModal() {
+            modal.style.display = 'none';
+            form.reset();
+        }
+        //INCOPORANDO LA FUNCION ABRIR MODAL EN EL BOTON PARA ABRIR EL MODAL
+        document.getElementById('btnAbrirModalNuevoColegio').addEventListener('click', () => {
+            tituloModal.textContent = 'Registrar Nuevo Colegio';
+            form.reset();
+            abrirModal();
+        });
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
+        document.getElementById('btnCerrarModalColegio').addEventListener('click', cerrarModal);
+        //INCOPORANDO LA FUNCION CERRAR MODAL EN EL BOTON PARA CERRAR EL MODAL
+        document.getElementById('btnCancelarModalColegio').addEventListener('click', cerrarModal);
+
+        //HACIENDO UNA SOLICITUD FECTH A LA RUTA PARA AGREGAR
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const apoyoData = Object.fromEntries(new FormData(form));
+            console.log(apoyoData)
+            fetch("{% url 'registrar_colegio' %}", {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': csrfToken 
+                },
+                body: JSON.stringify(apoyoData)
+            })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error || 'Error del servidor');
+                    alert(data.mensaje);
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error al guardar:', error);
+                    alert('Ocurrió un error: ' + error.message);
+                });
+        });
+        //FUNCION PARA ABRIR EL BOTON DE EDITAR APOYO
+        document.querySelectorAll('.boton-editar').forEach(button => {
+            button.addEventListener('click', function () {
+                const data = this.dataset;
+                console.log(data)
+                tituloModal.textContent = 'Editar Colegio';
+                document.getElementById('idColegioEditar').value = data.id;
+                const nombreCompleto = data.nombre_completo || '';
+                const partesNombre = nombreCompleto.split(' ');
+                const nombres = partesNombre.pop() || '';
+                const apellidos = partesNombre.join(' ');
+                document.getElementById('nombresColegio').value = nombres;
+                document.getElementById('apellidosColegio').value = apellidos;
+                document.getElementById('telefonoColegio').value = data.telefono !== 'None' ? data.telefono : '';
+                document.getElementById('dniColegio').value = data.dni;
+                document.getElementById('codigoColegio').value = data.codigo !== 'None' ? data.codigo : '';
+                document.getElementById('correoColegio').value = data.correo;
+                abrirModal();
+                console.log(data)
+            });
+        });
+        //FUNCION PARA EL CAMPO DE BUSQUEDA
+        const campoBusqueda = document.getElementById('campoBusquedaApoyo');
+        campoBusqueda.addEventListener('input', function () {
+            const termino = this.value.toLowerCase().trim();
+            document.querySelectorAll('#cuerpoTablaApoyos .fila-apoyo').forEach(fila => {
+                fila.style.display = fila.textContent.toLowerCase().includes(termino) ? '' : 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}
