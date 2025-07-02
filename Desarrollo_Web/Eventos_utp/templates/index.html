@@ -89,7 +89,8 @@
     <div class="modal-contenido">
         <span class="cerrar-modal" id="btnCerrarModalApoyo">×</span>
         <h2 id="tituloModalApoyo">Registrar Nuevo Apoyo</h2>
-        <form id="formularioApoyo" method="POST" novalidate>
+        <form id="formularioApoyo" method="POST" novalidate>            
+            <div id="errorMensaje" style="color: red; display: none;"></div>
             {% csrf_token %}
             <input type="hidden" id="idApoyoEditar" name="id">
             <div class="grupo-formulario"><label for="apellidosApoyo">Apellidos:</label><input type="text"
@@ -169,31 +170,40 @@
                 abrirModal();
             });
         });
-
-        //HACIENDO UNA SOLICITUD FECTH A LA RUTA PARA AGREGAR
+        const errorDiv = document.getElementById('errorMensaje');
         form.addEventListener('submit', function (event) {
             event.preventDefault();
+            errorDiv.style.display = 'none';
+
             const apoyoData = Object.fromEntries(new FormData(form));
+
             fetch("{% url 'registrar_apoyo' %}", {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'X-CSRFToken': csrfToken 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(apoyoData)
             })
-                .then(response => response.json().then(data => ({ ok: response.ok, data })))
-                .then(({ ok, data }) => {
-                    if (!ok) throw new Error(data.error || 'Error del servidor');
-                    alert(data.mensaje);
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error('Error al guardar:', error);
-                    alert('Ocurrió un error: ' + error.message);
-                });
-        });
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
+                    // Mostrar el mensaje de error que viene del backend
+                    errorDiv.textContent = data.error || 'Ocurrió un error';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
 
+                alert(data.mensaje);
+                location.reload();
+            })
+            .catch((error) => {
+                // Este solo se ejecuta si hubo un error de red (no del servidor)
+                console.error('Error de red:', error);
+                errorDiv.textContent = 'Error de red o del servidor.';
+                errorDiv.style.display = 'block';
+            });
+        });
         //HACIENDO UNA SOLICITUD FECTH A LA RUTA ELIMINAR
         document.querySelectorAll('.boton-eliminar').forEach(button => {
             button.addEventListener('click', function () {

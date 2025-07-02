@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
-
+from .FireStore.fs_apoyo import CN_Apoyo
 from Login.models import Administrador
 from .models import Apoyo,Promotor,Colegio
 
@@ -42,10 +42,10 @@ def registrar_apoyo(request):
     try:
         data = json.loads(request.body)
         apoyo_id = data.get('id')
-        print("toma tu id",apoyo_id)
         nombre_completo = f"{data.get('apellidos', '')} {data.get('nombres', '')}".strip()
-        if not all([nombre_completo, data.get('dni'), data.get('correo')]):
-            return JsonResponse({'error': 'Nombre, DNI y Correo son campos obligatorios.'}, status=400)
+        error = CN_Apoyo.validar_registro(data.get('nombres'),data.get('apellidos'),data.get('telefono'),data.get('dni'),data.get('ruc'),data.get('correo'))
+        if error:
+            return JsonResponse({'error': error}, status=400)
         if apoyo_id:
             apoyo = get_object_or_404(Apoyo, pk=apoyo_id)
             apoyo.nombre_completo_apoyo = nombre_completo
@@ -103,9 +103,9 @@ def registrar_promotor(request):
         data = json.loads(request.body)
         promotor_id = data.get('id')
         nombre_completo = f"{data.get('apellidosPromotor', '')} {data.get('nombresPromotor', '')}".strip()
-        if not all([nombre_completo, data.get('dniPromotor'), data.get('correoPromotor')]):
-            return JsonResponse({'error': 'Nombre, DNI y Correo son campos obligatorios.'}, status=400)
-        print("toma tu id",promotor_id)
+        error = CN_Apoyo.validar_registro(data.get('nombresPromotor', ''),data.get('apellidosPromotor', ''),data.get('codigoPromotor'),data.get('telefonoPromotor'),data.get('dniPromotor'),data.get('correoPromotor'))
+        if error:
+            return JsonResponse({'error': error}, status=400)
         if promotor_id:
             promotor = get_object_or_404(Promotor, pk=promotor_id)
             nuevo_dni = data.get('dniPromotor')
