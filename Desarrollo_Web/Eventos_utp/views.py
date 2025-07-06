@@ -7,7 +7,8 @@ import json
 from .FireStore.fs_apoyo import CN_Apoyo
 from Login.models import Administrador
 from .models import Apoyo,Promotor,Colegio
-
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 # MÉTODO ESPECIAL PARA OBTENER CREDENCIALES DEL ADMIN
 def obtener_administrador(request):
     correo = request.session.get('correo_administrador')
@@ -172,35 +173,50 @@ def registrar_colegio(request):
     admin = obtener_administrador(request)
     if not admin:
         return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
+    link = request.POST.get('linkUbicacionColegio')
+    validate = URLValidator()
     try:
-        data = json.loads(request.body)
-        promotor_id = data.get('promotorColegio')
-        print(data)
-        colegio_id = data.get('id')
-        nombre_completo = f"{data.get('apellidosEncargadoColegio', '')} {data.get('nombreEncargadoColegio', '')}".strip()
-        if not all([nombre_completo, promotor_id, data.get('nombreColegio')]):
-            return JsonResponse({'error': 'Al parecer no haz llennado todos los campus requeridos.'}, status=400)
+        if link:
+            validate(link)  # Lanza ValidationError si no es un link válido
+    except ValidationError:
+        return JsonResponse({'error': 'El enlace de ubicación no es válido'}, status=400)
+    try:
+        promotor_id = request.POST.get('promotorColegio')
+        colegio_id = request.POST.get('idColegioEditar')  # usa el ID correcto
+        nombre_colegio = request.POST.get('nombreColegio')
+        apellidos = request.POST.get('apellidosEncargadoColegio')
+        nombres = request.POST.get('nombreEncargadoColegio')
+        telefono = request.POST.get('telefonoEncargadoColegio')
+        distrito = request.POST.get('distritoColegio')
+        link = request.POST.get('linkUbicacionColegio')
+        archivo = request.FILES.get('archivoBdColegio')
+        
+        nombre_completo = f"{apellidos} {nombres}".strip()
+        if not all([nombre_completo, promotor_id, nombre_colegio]):
+            return JsonResponse({'error': 'Al parecer no haz llenado todos los campos requeridos.'}, status=400)
+        
         promotor = get_object_or_404(Promotor, pk=promotor_id)
         if colegio_id:
             colegio = get_object_or_404(Colegio, pk=colegio_id)
-            colegio.nombre_colegio = data.get('nombreColegio')
+            colegio.nombre_colegio = nombre_colegio
             colegio.promotor_colegio = promotor
             colegio.nombre_completo_encargado_colegio = nombre_completo
-            colegio.telefono_encargado_colegio = data.get('telefonoEncargadoColegio')
-            colegio.distrito_colegio = data.get('distritoColegio')
-            colegio.link_ubicacion_colegio = data.get('linkUbicacionColegio')
-            colegio.archivo_excel_colegio = data.get('archivoBdColegio')
+            colegio.telefono_encargado_colegio = telefono
+            colegio.distrito_colegio = distrito
+            colegio.link_ubicacion_colegio = link
+            if archivo:
+                colegio.archivo_excel_colegio = archivo
             colegio.save()
             return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
         else:
             Colegio.objects.create(
-                nombre_colegio=data.get('nombreColegio'),
+                nombre_colegio=nombre_colegio,
                 promotor_colegio=promotor,
                 nombre_completo_encargado_colegio=nombre_completo,
-                telefono_encargado_colegio= data.get('telefonoEncargadoColegio'),
-                distrito_colegio= data.get('distritoColegio'),
-                link_ubicacion_colegio= data.get('linkUbicacionColegio'),
-                archivo_excel_colegio= data.get('archivoBdColegio')
+                telefono_encargado_colegio=telefono,
+                distrito_colegio=distrito,
+                link_ubicacion_colegio=link,
+                archivo_excel_colegio=archivo
             )
             return JsonResponse({'mensaje': 'Apoyo registrado correctamente'}, status=201)
     except json.JSONDecodeError:

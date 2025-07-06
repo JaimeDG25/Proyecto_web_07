@@ -38,7 +38,6 @@
     </div>
     {% endif %}
     <div class="contenedor-tabla-responsiva">
-
         <table id="tablaColegios" class="tabla-datos-gestion">
             <thead>
                 <tr>
@@ -60,16 +59,23 @@
                     <td>{{ colegio.nombre_completo_encargado_colegio}}</td>
                     <td>{{ colegio.telefono_encargado_colegio }}</td>
                     <td>{{ colegio.distrito_colegio}}</td>
-                    <td>{{ colegio.link_ubicacion_colegio}}</td>
-                    <td>{{ colegio.archivo_excel_colegio}}</td>
+                    <td>
+                        <a href="{{ colegio.link_ubicacion_colegio }}" target="_blank">Ver en Google Maps</a>
+                    </td>
+                    <td>
+                        {{ colegio.archivo_excel_colegio}}
+                        <a href="{{ colegio.archivo_excel_colegio.url }}" download> Descargar Excel </a>
+                    </td>
                     <td>
                         <button class="boton-accion boton-editar" 
-                            data-id="{{ promotor.id }}"
-                            data-nombre_completo="{{ promotor.nombre_completo_promotor }}" 
-                            data-telefono="{{ promotor.telefono_promotor }}"
-                            data-dni="{{ promotor.dni_promotor}}" 
-                            data-correo="{{ promotor.correo_promotor }}" 
-                            data-codigo="{{ promotor.codigo_promotor }}">
+                            data-id="{{ colegio.id }}"
+                            data-nombre_colegio="{{ colegio.nombre_colegio }}" 
+                            data-promotor_colegio="{{ colegio.promotor_colegio }}"
+                            data-nombre_completo_encargado_colegio="{{ colegio.nombre_completo_encargado_colegio }}"
+                            data-telefono_encargado_colegio="{{ colegio.telefono_encargado_colegio }}"
+                            data-distrito_colegio ="{{ colegio.distrito_colegio }}" 
+                            data-link_ubicacion_colegio="{{ colegio.link_ubicacion_colegio }}" 
+                            data-archivo_excel_colegio="{{ colegio.archivo_excel_colegio }}">
                             Editar
                         </button>
                         
@@ -87,21 +93,15 @@
 
 <div id="modalGestionColegio" class="modal">
     <div class="modal-contenido">
-
         <span class="cerrar-modal" id="btnCerrarModalColegio">×</span>
-
         <h2 id="tituloModalColegio">Registrar Nuevo Colegio</h2>
-
         <form id="formularioColegio" method="POST" novalidate>
             {% csrf_token %}
             <input type="hidden" id="idColegioEditar">
-
             <div class="grupo-formulario">
-
                 <label for="nombreColegio">Nombre del Colegio:</label>
                 <input type="text" id="nombreColegio" name="nombreColegio" required>
             </div>
-
             <div class="grupo-formulario">
                 <label for="promotorColegio">Promotor:</label>
                 <select id="promotorColegio" name="promotorColegio" required>
@@ -111,51 +111,35 @@
                     {%endfor%}
                 </select>
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="apellidosEncargadoColegio">Apellidos del Encargado:</label>
                 <input type="text" id="apellidosEncargadoColegio" name="apellidosEncargadoColegio" required>
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="nombreEncargadoColegio">Nombres del Encargado:</label>
                 <input type="text" id="nombreEncargadoColegio" name="nombreEncargadoColegio" required>
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="telefonoEncargadoColegio">Teléfono del Encargado:</label>
                 <input type="tel" id="telefonoEncargadoColegio" name="telefonoEncargadoColegio" pattern="[0-9]{9}"
                     title="Ingrese un número de teléfono válido (9 dígitos)" required>
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="distritoColegio">Distrito:</label>
                 <input type="text" id="distritoColegio" name="distritoColegio" required>
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="linkUbicacionColegio">Link de Ubicación (Google Maps, opcional):</label>
                 <input type="url" id="linkUbicacionColegio" name="linkUbicacionColegio"
                     placeholder="https://maps.app.google.xd/...">
             </div>
-
             <div class="grupo-formulario">
-
                 <label for="archivoBdColegio">Base de Datos (Archivo Excel):</label>
                 <input type="file" id="archivoBdColegio" name="archivoBdColegio" accept=".xlsx, .xls">
                 <small id="nombreArchivoActual" style="display: block; margin-top: 5px; color: #555;"></small>
             </div>
-
-
             <div class="botones-formulario">
-
                 <button type="button" id="btnCancelarModalColegio" class="boton-secundario">Cancelar</button>
-
                 <button type="submit" id="btnGuardarColegio" class="boton-primario">Guardar Colegio</button>
             </div>
         </form>
@@ -193,15 +177,19 @@
         //HACIENDO UNA SOLICITUD FECTH A LA RUTA PARA AGREGAR
         form.addEventListener('submit', function (event) {
             event.preventDefault();
-            const apoyoData = Object.fromEntries(new FormData(form));
-            console.log(apoyoData)
+            const archivoInput = document.getElementById('archivoBdColegio');
+            if (!archivoInput.files.length && !document.getElementById('idColegioEditar').value) {
+                alert('Por favor, seleccione un archivo Excel para registrar el colegio.');
+                return;
+            }
+            const formData = new FormData(form);
+            console.log(formData)
             fetch("{% url 'registrar_colegio' %}", {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json', 
                     'X-CSRFToken': csrfToken 
                 },
-                body: JSON.stringify(apoyoData)
+                body: formData
             })
                 .then(response => response.json().then(data => ({ ok: response.ok, data })))
                 .then(({ ok, data }) => {
@@ -217,6 +205,7 @@
         //FUNCION PARA ABRIR EL BOTON DE EDITAR APOYO
         document.querySelectorAll('.boton-editar').forEach(button => {
             button.addEventListener('click', function () {
+                console.log("HOLA MUNDILLO")
                 const data = this.dataset;
                 console.log(data)
                 tituloModal.textContent = 'Editar Colegio';
@@ -225,13 +214,16 @@
                 const partesNombre = nombreCompleto.split(' ');
                 const nombres = partesNombre.pop() || '';
                 const apellidos = partesNombre.join(' ');
-                document.getElementById('nombresColegio').value = nombres;
-                document.getElementById('apellidosColegio').value = apellidos;
-                document.getElementById('telefonoColegio').value = data.telefono !== 'None' ? data.telefono : '';
-                document.getElementById('dniColegio').value = data.dni;
-                document.getElementById('codigoColegio').value = data.codigo !== 'None' ? data.codigo : '';
-                document.getElementById('correoColegio').value = data.correo;
+                document.getElementById('nombreColegio').value = nombres;
+                document.getElementById('promotorColegio').value = apellidos;
+                document.getElementById('apellidosEncargadoColegio').value = apellidos;
+                document.getElementById('nombreEncargadoColegio').value = apellidos;
+                document.getElementById('telefonoEncargadoColegio').value = data.telefono !== 'None' ? data.telefono : '';
+                document.getElementById('distritoColegio').value = data.dni;
+                document.getElementById('linkUbicacionColegio').value = data.codigo !== 'None' ? data.codigo : '';
+                document.getElementById('archivo_excel_colegio').value = '';
                 abrirModal();
+                console.log("Oye mira estos datos:")
                 console.log(data)
             });
         });
@@ -239,7 +231,7 @@
         const campoBusqueda = document.getElementById('campoBusquedaApoyo');
         campoBusqueda.addEventListener('input', function () {
             const termino = this.value.toLowerCase().trim();
-            document.querySelectorAll('#cuerpoTablaApoyos .fila-apoyo').forEach(fila => {
+            document.querySelectorAll('#cuerpoTablaColegios .fila-apoyo').forEach(fila => {
                 fila.style.display = fila.textContent.toLowerCase().includes(termino) ? '' : 'none';
             });
         });

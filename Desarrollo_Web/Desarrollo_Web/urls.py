@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from Login.views import redirigir_a_login 
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', redirigir_a_login), 
     path('admin/', admin.site.urls),
     path('Evento/', include('Eventos_utp.urls')),
     path('Login/', include('Login.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
