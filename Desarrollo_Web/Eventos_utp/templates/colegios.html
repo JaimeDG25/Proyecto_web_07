@@ -63,8 +63,7 @@
                         <a href="{{ colegio.link_ubicacion_colegio }}" target="_blank">Ver en Google Maps</a>
                     </td>
                     <td>
-                        {{ colegio.archivo_excel_colegio}}
-                        <a href="{{ colegio.archivo_excel_colegio.url }}" download> Descargar Excel </a>
+                        <a href="{% url 'descargar_archivo' colegio.id %}">📥 Descargar archivo</a>
                     </td>
                     <td>
                         <button class="boton-accion boton-editar" 

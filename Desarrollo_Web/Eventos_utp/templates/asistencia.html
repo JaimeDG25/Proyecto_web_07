@@ -19,33 +19,40 @@
     <div class="layout-asistencia-flex">
 
         <div class="columna-formulario-asistencia">
-            <form id="formularioRegistroAsistencia" class="formulario-en-pagina">
+            <form id="formularioRegistroAsistencia" class="formulario-en-pagina" method="POST" novalidate>
+                {% csrf_token %}
                 <h2>Planificar Nueva Asistencia</h2>
                 <input type="hidden" id="idAsistenciaEditar">
 
                 <div class="grupo-formulario">
                     <label for="apoyoAsistencia">Seleccionar Apoyo:</label>
+                    
                     <select id="apoyoAsistencia" name="apoyoAsistencia" required>
-                        <option value="">Cargando apoyos...</option>
+                        <option value="">Seleccione un apoyo...</option>
+                        {%for apo in apoyos%}
+                            <option value="{{ apo.id }}">{{apo.nombre_completo_apoyo}}</option>
+                        {%endfor%}
                     </select>
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="colegioAsistencia">Seleccionar Colegio:</label>
                     <select id="colegioAsistencia" name="colegioAsistencia" required>
-                        <option value="">Cargando colegios...</option>
+                        <option value="">Seleccione un colegio...</option>
+                        {%for col in colegios%}
+                            <option value="{{ col.id }}">{{col.nombre_colegio}}</option>
+                        {%endfor%}
                     </select>
-                    <div id="infoColegioSeleccionado" class="info-adicional-seleccion">
-                        <!-- info del colegio seleccionado -->
-                    </div>
                 </div>
 
                 <div class="grupo-formulario">
                     <label for="rolAsistencia">Rol a Realizar:</label>
                     <select id="rolAsistencia" name="rolAsistencia" required>
                         <option value="">Seleccione un rol...</option>
-                        <option value="bus">Bus (S/ 50.00)</option>
                         <option value="campus">Campus (S/ 40.00)</option>
+                        <option value="bus">Bus (S/ 50.00)</option>
+                        <!-- <option value="doble campus">Doble Campus (S/ 80.00)</option>
+                        <option value="campus y bus">Campus y Bus (S/ 90.00)</option>
+                        <option value="doble bus">Doble Bus (S/ 100.00)</option> -->
                     </select>
                 </div>
 
@@ -98,5 +105,33 @@
     </div>
 
 </div>
-<script src="{% static 'js/asistencia.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const form = document.getElementById('formularioRegistroAsistencia');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); 
+            const asistenciaData = Object.fromEntries(new FormData(form));
+            
+            fetch("{% url 'registrar_asistencia' %}", {
+                method: 'POST',
+                headers: { 
+                    'X-CSRFToken': csrfToken 
+                },
+                body: JSON.stringify(asistenciaData)
+            })
+            .then(response => response.json().then(data => ({ ok: response.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) throw new Error(data.error || 'Error del servidor');
+                alert(data.mensaje);
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error al guardar:', error);
+                alert('Ocurrió un error: ' + error.message);
+            });
+        });
+    });
+</script>
+
 {% endblock %}

@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 import json
 from .FireStore.fs_apoyo import CN_Apoyo
 from Login.models import Administrador
-from .models import Apoyo,Promotor,Colegio
+from .models import Apoyo,Promotor,Colegio,Asistencia
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 # MÉTODO ESPECIAL PARA OBTENER CREDENCIALES DEL ADMIN
@@ -162,6 +162,7 @@ def eliminar_promotor(request, promotor_id):
 
 #==============================================================================================================
 #===================================== VISTA PARA GENERAR COLEGIOS ============================================
+from django.http import HttpResponse
 def colegios(request):
     lista_de_colegios = Colegio.objects.all().order_by('nombre_colegio')
     admin = obtener_administrador(request)
@@ -177,7 +178,7 @@ def registrar_colegio(request):
     validate = URLValidator()
     try:
         if link:
-            validate(link)  # Lanza ValidationError si no es un link válido
+            validate(link)
     except ValidationError:
         return JsonResponse({'error': 'El enlace de ubicación no es válido'}, status=400)
     try:
@@ -196,6 +197,8 @@ def registrar_colegio(request):
             return JsonResponse({'error': 'Al parecer no haz llenado todos los campos requeridos.'}, status=400)
         
         promotor = get_object_or_404(Promotor, pk=promotor_id)
+        if archivo:
+            contenido_binario = archivo.read()
         if colegio_id:
             colegio = get_object_or_404(Colegio, pk=colegio_id)
             colegio.nombre_colegio = nombre_colegio
@@ -204,8 +207,8 @@ def registrar_colegio(request):
             colegio.telefono_encargado_colegio = telefono
             colegio.distrito_colegio = distrito
             colegio.link_ubicacion_colegio = link
-            if archivo:
-                colegio.archivo_excel_colegio = archivo
+            if contenido_binario:
+                colegio.archivo_excel_colegio = contenido_binario
             colegio.save()
             return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
         else:
@@ -216,20 +219,82 @@ def registrar_colegio(request):
                 telefono_encargado_colegio=telefono,
                 distrito_colegio=distrito,
                 link_ubicacion_colegio=link,
-                archivo_excel_colegio=archivo
+                archivo_excel_colegio=contenido_binario
             )
             return JsonResponse({'mensaje': 'Apoyo registrado correctamente'}, status=201)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Datos JSON inválidos'}, status=400)
     except Exception as e:
         return JsonResponse({'error': f'Error en el servidor: {str(e)}'}, status=500)
+def descargar_archivo(request, colegio_id):
+    colegio = get_object_or_404(Colegio, pk=colegio_id)
+    if colegio.archivo_excel_colegio:
+        response = HttpResponse(colegio.archivo_excel_colegio, content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{colegio.nombre_colegio}.xlsx"'
+        return response
+    else:
+        return JsonResponse({'error': 'Este colegio no tiene archivo.'}, status=404)
 #==============================================================================================================
 
 #==============================================================================================================
-#==================================== VISTA PARA GENERAR PROMOTORES ===========================================
+#==================================== VISTA PARA GENERAR ASISTENCIA ===========================================
 def asistencia(request):
     admin = obtener_administrador(request)
-    return render(request, 'asistencia.html', {'admin': admin})
+    apoyos = Apoyo.objects.all()
+    print("============== APOYOS ================")
+    for apo in apoyos:
+        print(apo.nombre_completo_apoyo)
+    colegios = Colegio.objects.all()
+    print("============== COLEGIOS ===============")
+    for col in colegios:
+        print(col.nombre_colegio)
+    return render(request, 'asistencia.html', {'admin': admin, 'apoyos': apoyos, 'colegios':colegios})
+
+# VISTA PARA CREAR Y ACTUALIZAR ASISTENCIA (VERSIÓN SEGURA)
+@require_POST
+def registrar_asistencia (request):
+    print("HOLA ACCEDIENDO A ASISTENCIA 1 ")
+    admin = obtener_administrador(request)
+    if not admin:
+        return JsonResponse({'error': 'Acceso no autorizado. Por favor, inicie sesión de nuevo.'}, status=401)
+    try:
+        print("HOLA ACCEDIENDO A ASISTENCIA 2")
+        data = json.loads(request.body)
+        apoyo_id = data.get('apoyoAsistencia')
+        colegio_id = data.get('colegioAsistencia')
+        apoyo = get_object_or_404(Apoyo, pk=apoyo_id)
+        colegio = get_object_or_404(Colegio, pk=colegio_id)
+        print(data.get('apoyoAsistencia'))
+        print(data.get('colegioAsistencia'))
+        print(data.get('rolAsistencia'))
+        print(data.get('turnoAsistencia'))
+        print(data.get('fechaAsistencia'))
+        asistencia_id = data.get('id')
+        print(asistencia_id)
+
+        if asistencia_id:
+            asistencia = get_object_or_404(Apoyo, pk=asistencia_id)
+            asistencia.apoyo_asistencia = data.get('apoyoAsistencia')
+            asistencia.colegio_asistencia = data.get('colegioAsistencia')
+            asistencia.rol_asistencia = data.get('rolAsistencia')
+            asistencia.turno_asistencia = data.get('turnoAsistencia')
+            asistencia.asistencia_asistencia = False
+            asistencia.save()
+            return JsonResponse({'mensaje': 'Apoyo actualizado correctamente'})
+        else:
+            Asistencia.objects.create(
+                apoyo_asistencia=apoyo,
+                colegio_asistencia=colegio,
+                fecha_asistencia=data.get('fechaAsistencia'),
+                rol_asistencia=data.get('rolAsistencia'),
+                turno_asistencia=data.get('turnoAsistencia'),
+                asistencia_asistencia = False
+            )
+            return JsonResponse({'mensaje': 'Apoyo registrado correctamente'}, status=201)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos JSON inválidos'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error en el servidor: {str(e)}'}, status=500)
 #==============================================================================================================
 
 #==============================================================================================================
