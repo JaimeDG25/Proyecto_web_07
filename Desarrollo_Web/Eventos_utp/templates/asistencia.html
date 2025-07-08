@@ -12,50 +12,40 @@
 {% endblock %}
 
 {% block content %}
-
 <div>
     <h1>Registro de Asistencia</h1>
-
     <div class="layout-asistencia-flex">
-
         <div class="columna-formulario-asistencia">
             <form id="formularioRegistroAsistencia" class="formulario-en-pagina" method="POST" novalidate>
                 {% csrf_token %}
                 <h2>Planificar Nueva Asistencia</h2>
-                <input type="hidden" id="idAsistenciaEditar">
-
+                <input type="hidden" id="idAsistenciaEditar" name="id">
                 <div class="grupo-formulario">
                     <label for="apoyoAsistencia">Seleccionar Apoyo:</label>
-                    
                     <select id="apoyoAsistencia" name="apoyoAsistencia" required>
                         <option value="">Seleccione un apoyo...</option>
-                        {%for apo in apoyos%}
-                            <option value="{{ apo.id }}">{{apo.nombre_completo_apoyo}}</option>
-                        {%endfor%}
+                        {% for apo in apoyos %}
+                        <option value="{{ apo.id }}">{{ apo.nombre_completo_apoyo }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="grupo-formulario">
                     <label for="colegioAsistencia">Seleccionar Colegio:</label>
                     <select id="colegioAsistencia" name="colegioAsistencia" required>
                         <option value="">Seleccione un colegio...</option>
-                        {%for col in colegios%}
-                            <option value="{{ col.id }}">{{col.nombre_colegio}}</option>
-                        {%endfor%}
+                        {% for col in colegios %}
+                        <option value="{{ col.id }}">{{ col.nombre_colegio }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="rolAsistencia">Rol a Realizar:</label>
                     <select id="rolAsistencia" name="rolAsistencia" required>
                         <option value="">Seleccione un rol...</option>
                         <option value="campus">Campus (S/ 40.00)</option>
                         <option value="bus">Bus (S/ 50.00)</option>
-                        <!-- <option value="doble campus">Doble Campus (S/ 80.00)</option>
-                        <option value="campus y bus">Campus y Bus (S/ 90.00)</option>
-                        <option value="doble bus">Doble Bus (S/ 100.00)</option> -->
                     </select>
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="turnoAsistencia">Turno:</label>
                     <select id="turnoAsistencia" name="turnoAsistencia" required>
@@ -64,12 +54,10 @@
                         <option value="tarde">Tarde</option>
                     </select>
                 </div>
-
                 <div class="grupo-formulario">
                     <label for="fechaAsistencia">Fecha de Asistencia:</label>
                     <input type="date" id="fechaAsistencia" name="fechaAsistencia" required>
                 </div>
-
                 <div class="botones-formulario">
                     <button type="button" id="btnLimpiarFormularioAsistencia" class="boton-secundario">Limpiar</button>
                     <button type="submit" id="btnPlanificarAsistencia" class="boton-primario">Planificar
@@ -82,7 +70,6 @@
             <h2>Asistencias Planificadas (Pendientes de Confirmar)</h2>
             <input type="search" id="campoBusquedaAsistenciaPlanificada" class="campo-busqueda-tabla"
                 placeholder="Buscar por apoyo, colegio, fecha...">
-
             <div class="contenedor-tabla-responsiva" style="margin-top: 15px;">
                 <table id="tablaAsistenciasPlanificadas" class="tabla-datos-gestion">
                     <thead>
@@ -96,42 +83,106 @@
                         </tr>
                     </thead>
                     <tbody id="cuerpoTablaAsistenciasPlanificadas">
-
+                        {% for asistencia in lista_asistencias %}
+                        {% if not asistencia.asistencia_asistencia %}
+                        <tr class="fila-asistencia">
+                            <td>{{ asistencia.apoyo_asistencia.nombre_completo_apoyo }}</td>
+                            <td>{{ asistencia.rol_asistencia|capfirst }}</td>
+                            <td>{{ asistencia.turno_asistencia|capfirst }}</td>
+                            <td>{{ asistencia.colegio_asistencia.nombre_colegio }}</td>
+                            <td>{{ asistencia.fecha_asistencia|date:"d/m/Y" }}</td>
+                            <td>
+                                <button class="boton-accion boton-editar" data-id="{{ asistencia.id }}"
+                                    data-apoyo-id="{{ asistencia.apoyo_asistencia.id }}"
+                                    data-colegio-id="{{ asistencia.colegio_asistencia.id }}"
+                                    data-rol="{{ asistencia.rol_asistencia }}"
+                                    data-turno="{{ asistencia.turno_asistencia }}"
+                                    data-fecha="{{ asistencia.fecha_asistencia|date:'Y-m-d' }}">Editar Plan.</button>
+                                <button class="boton-accion boton-eliminar"
+                                    data-url="{% url 'eliminar_asistencia' asistencia.id %}">Eliminar Plan.</button>
+                                <button class="boton-accion boton-asistio"
+                                    data-url="{% url 'confirmar_asistencia_estado' asistencia.id 'asistio' %}">Asistió</button>
+                                <button class="boton-accion boton-cancelo"
+                                    data-url="{% url 'confirmar_asistencia_estado' asistencia.id 'cancelo' %}">Canceló</button>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding: 20px;">No hay asistencias pendientes.
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
-
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         const form = document.getElementById('formularioRegistroAsistencia');
+
         form.addEventListener('submit', function (event) {
-            event.preventDefault(); 
+            event.preventDefault();
             const asistenciaData = Object.fromEntries(new FormData(form));
-            
             fetch("{% url 'registrar_asistencia' %}", {
                 method: 'POST',
-                headers: { 
-                    'X-CSRFToken': csrfToken 
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify(asistenciaData)
             })
-            .then(response => response.json().then(data => ({ ok: response.ok, data })))
-            .then(({ ok, data }) => {
-                if (!ok) throw new Error(data.error || 'Error del servidor');
-                alert(data.mensaje);
-                location.reload();
-            })
-            .catch(error => {
-                console.error('Error al guardar:', error);
-                alert('Ocurrió un error: ' + error.message);
-            });
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error);
+                    alert(data.mensaje);
+                    location.reload();
+                }).catch(err => alert('Error: ' + err.message));
+        });
+
+        document.getElementById('cuerpoTablaAsistenciasPlanificadas').addEventListener('click', function (event) {
+            const btn = event.target.closest('button');
+            if (!btn) return;
+
+            if (btn.classList.contains('boton-editar')) {
+                const data = btn.dataset;
+                form.querySelector('#idAsistenciaEditar').value = data.id;
+                form.querySelector('#apoyoAsistencia').value = data.apoyoId;
+                form.querySelector('#colegioAsistencia').value = data.colegioId;
+                form.querySelector('#rolAsistencia').value = data.rol;
+                form.querySelector('#turnoAsistencia').value = data.turno;
+                form.querySelector('#fechaAsistencia').value = data.fecha;
+                form.querySelector('h2').textContent = 'Editando Planificación';
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            if (btn.classList.contains('boton-eliminar') || btn.classList.contains('boton-asistio') || btn.classList.contains('boton-cancelo')) {
+                let msg = '¿Está seguro?';
+                if (btn.classList.contains('boton-eliminar')) msg = '¿Seguro que desea eliminar esta planificación?';
+                if (btn.classList.contains('boton-asistio')) msg = '¿Seguro que desea confirmar que asistió?';
+                if (btn.classList.contains('boton-cancelo')) msg = '¿Seguro que desea marcar como cancelada?';
+
+                if (confirm(msg)) {
+                    fetch(btn.dataset.url, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    })
+                        .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                        .then(({ ok, data }) => {
+                            if (!ok) throw new Error(data.error);
+                            alert(data.mensaje);
+                            location.reload();
+                        }).catch(err => alert('Error: ' + err.message));
+                }
+            }
+        });
+
+        document.getElementById('btnLimpiarFormularioAsistencia').addEventListener('click', () => {
+            form.reset();
+            form.querySelector('#idAsistenciaEditar').value = '';
+            form.querySelector('h2').textContent = 'Planificar Nueva Asistencia';
         });
     });
 </script>
-
 {% endblock %}

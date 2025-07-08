@@ -16,5 +16,7 @@ urlpatterns = [
     path('Evento/descargar_archivo/<int:colegio_id>/', views.descargar_archivo, name='descargar_archivo'),
     path('asistencia/', views.asistencia, name='asistencia_link'),
     path('registrar_asistencia/', views.registrar_asistencia, name='registrar_asistencia'),
+    path('eliminar_asistencia/<int:asistencia_id>/', views.eliminar_asistencia, name='eliminar_asistencia'),
+    path('confirmar_asistencia/<int:asistencia_id>/<str:estado>/', views.confirmar_asistencia_estado, name='confirmar_asistencia_estado'),
     path('generadores/', views.generador, name='generador_link'),
 ]
