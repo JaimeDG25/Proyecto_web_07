@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': 'DBAPOYOS',
         'USER': '',
         'PASSWORD': '',
-        'HOST': 'DESKTOP-0JUDDFN\SQLEXPRESS',  # o la IP del servidor
+        'HOST': 'DESKTOP-HJE6O1N\SQLEXPRESS',  # o la IP del servidor
         'PORT': '',  # por defecto es 1433
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',

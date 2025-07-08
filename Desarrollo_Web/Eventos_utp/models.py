@@ -37,6 +37,7 @@ class Asistencia(models.Model):
     rol_asistencia = models.CharField(max_length=50)
     turno_asistencia = models.CharField(max_length=50)
     asistencia_asistencia = models.BooleanField(default=False)
+    monto_pagado_asistencia = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     def __str__(self):
         return f"{self.apoyo} - {self.colegio} ({self.fecha})"
 
