@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preguntas Frecuentes - UTP</title>
+  <style>
+    .body_faqs {
+      font-family: Arial, sans-serif;
+      background-color: #f5f6fa;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .title_faqs {
+      color: #004080;
+    }
+
+    .accordion {
+      background-color: #e6f0ff;
+      color: #004080;
+      cursor: pointer;
+      padding: 15px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .active,
+    .accordion:hover {
+      background-color: #cce0ff;
+    }
+
+    .panel {
+      background-color: white;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      border: 1px solid #cce0ff;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      padding: 0 15px;
+    }
+
+    .panel p {
+      margin: 15px 0;
+    }
+  </style>
+</head>
+
+<body class="body_faqs">
+
+  <h2 class="title_faqs">Preguntas Frecuentes - Universidad Tecnológica de Panamá (UTP)</h2>
+
+  <button class="accordion">¿Cuáles son los requisitos para ingresar a la UTP?</button>
+  <div class="panel">
+    <p>Debes presentar la Prueba de Ingreso, tener título de bachiller y cumplir con los requisitos específicos de la
+      carrera que deseas estudiar.</p>
+  </div>
+
+  <button class="accordion">¿Qué carreras ofrece la UTP?</button>
+  <div class="panel">
+    <p>La UTP ofrece carreras en ingeniería, tecnología, ciencias naturales, informática, logística, administración y
+      más.</p>
+  </div>
+
+  <button class="accordion">¿Dónde están ubicados los campus de la UTP?</button>
+  <div class="panel">
+    <p>La sede principal está en la Ciudad de Panamá, pero también hay centros regionales en Azuero, Bocas del Toro,
+      Coclé, Colón, Chiriquí y Veraguas.</p>
+  </div>
+
+  <button class="accordion">¿Cuál es el costo de estudiar en la UTP?</button>
+  <div class="panel">
+    <p>La matrícula y los costos son bastante accesibles ya que es una universidad pública. El costo aproximado por
+      semestre es de B/.27.50.</p>
+  </div>
+
+  <button class="accordion">¿La UTP ofrece becas o ayudas económicas?</button>
+  <div class="panel">
+    <p>Sí, ofrece becas internas y externas, incluyendo becas por excelencia académica, deportivas y de investigación.
+    </p>
+  </div>  
+</body>
+  <script>
+    const acc = document.querySelectorAll(".accordion");
+
+    acc.forEach(button => {
+      button.addEventListener("click", function () {
+        this.classList.toggle("active");
+        const panel = this.nextElementSibling;
+
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null; // Cierra
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + "px"; // Abre
+        }
+      });
+    });
+  </script>
+
+</html>
