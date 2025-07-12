@@ -66,14 +66,13 @@ WSGI_APPLICATION = 'Desarrollo_Web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'BDAPOYOS',
-        'USER': 'sa',
-        'PASSWORD': '123',
-        'HOST': 'HP\\SQLEXPRESS',
-        'PORT': '',  # Puede dejarse vacío
+        'NAME': 'DBAPOYOS',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': 'DESKTOP-HJE6O1N\SQLEXPRESS',  # o la IP del servidor
+        'PORT': '',  # por defecto es 1433
         'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',  # o 18, o 22 si tienes ese
-            'extra_params': 'Encrypt=no;TrustServerCertificate=yes;',
+            'driver': 'ODBC Driver 17 for SQL Server',
         },
     }
 }
