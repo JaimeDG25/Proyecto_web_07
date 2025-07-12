@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tipo_documento }}: {{ orden.numero_documento }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px auto; /* Centra el contenido en la página y añade margen vertical */
+            font-size: 10pt;
+            max-width: 800px; /* Un ancho más adecuado para una vista "vertical" en pantalla */
+            box-sizing: border-box; /* Asegura que padding y border se incluyan en el ancho */
+            padding: 0 15px; /* Añade un pequeño padding a los lados dentro del ancho máximo */
+        }
+
+        .header, .section, .table-container, .footer {
+            margin-bottom: 15px;
+        }
+
+        .header {
+            display: flex; /* Usamos flexbox para colocar la imagen y el título en línea */
+            justify-content: flex-start; /* Alinea los elementos al inicio (izquierda) */
+            align-items: center; /* Centra los elementos verticalmente en la misma línea */
+            gap: 20px; /* Espacio entre la imagen y el título */
+            padding-bottom: 15px; /* Espacio debajo del encabezado */
+            border-bottom: 1px solid #eee; /* Línea separadora sutil si lo deseas */
+        }
+
+        .header img {
+            max-width: 120px; /* Ajustamos el tamaño de la imagen si es necesario */
+            height: auto; /* Mantiene la proporción de la imagen */
+            margin-bottom: 0;
+        }
+
+        .header .title {
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: left; /* Alinea el texto a la izquierda, no al centro */
+            flex-grow: 1; /* Permite que el título ocupe el espacio restante */
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 11pt;
+        }
+
+        .section table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+
+        .section table td {
+            padding: 3px 5px; /* Añadimos un pequeño padding horizontal para las celdas */
+            vertical-align: top;
+        }
+
+        .section table td:first-child {
+            width: 25%; /* Puedes disminuir este porcentaje para la primera columna */
+            font-weight: bold;
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 9pt;
+        }
+
+        .table-container th, .table-container td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .table-container th {
+            background-color: #CCE0FF; /* Fondo celeste para la cabecera de la tabla */
+            font-weight: bold;
+        }
+
+        /* Ajustes de ancho de columnas para la primera tabla */
+        .table-container:nth-of-type(1) table thead th:nth-child(1) { width: 10%; } /* Line-Sch */
+        .table-container:nth-of-type(1) table thead th:nth-child(2) { width: 40%; } /* Item/Descr */
+        .table-container:nth-of-type(1) table thead th:nth-child(3) { width: 10%; } /* Cantidad */
+        .table-container:nth-of-type(1) table thead th:nth-child(4) { width: 10%; } /* UOM */
+        .table-container:nth-of-type(1) table thead th:nth-child(5) { width: 15%; } /* Precio */
+        .table-container:nth-of-type(1) table thead th:nth-child(6) { width: 15%; } /* Importe sin IGV */
+
+        /* Ajustes de ancho de columnas para la segunda tabla (Distrib) */
+        .table-container:nth-of-type(2) table thead th:nth-child(1) { width: 5%; } /* Distrib */
+        .table-container:nth-of-type(2) table thead th:nth-child(2) { width: 8%; } /* Cantidad */
+        .table-container:nth-of-type(2) table thead th:nth-child(3) { width: 8%; } /* Importe */
+        .table-container:nth-of-type(2) table thead th:nth-child(4) { width: 20%; } /* Cuenta */
+        .table-container:nth-of-type(2) table thead th:nth-child(5) { width: 20%; } /* Unidad Explotación */
+        .table-container:nth-of-type(2) table thead th:nth-child(6) { width: 15%; } /* Departamento */
+        .table-container:nth-of-type(2) table thead th:nth-child(7) { width: 10%; } /* Producto */
+        .table-container:nth-of-type(2) table thead th:nth-child(8) { width: 14%; } /* Proyectos */
+
+
+        .summary-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            flex-direction: column;
+        }
+
+        .summary-left {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .summary-left p {
+            margin: 2px 0;
+        }
+
+        .summary-right {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: right;
+            box-sizing: border-box;
+        }
+
+        .summary-right table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-right table td {
+            padding: 2px 0;
+        }
+
+        .summary-right table td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    {% load static %} {# Carga las etiquetas de static para usar {% static %} #}
+
+    <div class="header">
+        <img src="{% static 'img/logo_utp.jpg' %}" alt="Universidad Tecnológica del Perú Logo">
+        <div class="title">
+            {{ tipo_documento }}: {{ orden.numero_documento }}
+        </div>
+    </div>
+
+    <div class="section">
+        <table>
+            <tr>
+                <td>Acuerdo</td>
+                <td>Solicitud</td>
+                <td>SC-0000091460-2025</td> {# Valor estático #}
+                <td>Fecha</td>
+                <td>{{ orden.fecha_generacion|date:"Y-m-d" }}</td>
+            </tr>
+            <tr>
+                <td>Condiciones Pago</td>
+                <td colspan="2">Pago inmediato</td> {# Valor estático #}
+                <td>Moneda</td>
+                <td>PEN</td>
+            </tr>
+            <tr>
+                <td>Comprador</td>
+                <td>MURATA Cesar</td> {# Valor estático #}
+                <td>Teléfono Comprador</td>
+                <td></td> {# Vacío #}
+                <td>Email Comprador</td>
+                <td>cmurata@utp.edu.pe</td> {# Valor estático #}
+            </tr>
+            <tr>
+                <td>Solicitante</td>
+                <td>HIDALGO ALEXXIA</td> {# Valor estático #}
+                <td>Teléfono Solicitante</td>
+                <td></td> {# Vacío #}
+                <td>Email Solicitante</td>
+                <td>ahidalagog@utp.edu.pe</td> {# Valor estático #}
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <table>
+            <tr>
+                <td>Proveedor</td>
+                <td colspan="2">{{ orden.apoyo.nombre_completo_apoyo }}</td>
+                <td>Contacto</td>
+                <td colspan="2">{{ orden.apoyo.nombre_completo_apoyo }}</td> {# Generalmente el mismo que el proveedor #}
+                <td>Telef</td>
+                <td>{{ orden.apoyo.telefono|default:"" }}</td>
+            </tr>
+            <tr>
+                <td>Ruc</td>
+                <td colspan="2">{{ orden.apoyo.dni_ruc_apoyo|default:"" }}</td> {# Asumiendo que el RUC es el DNI_RUC #}
+                <td>Email</td>
+                <td colspan="2">{{ orden.apoyo.email_apoyo|default:"" }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Line-Sch</th>
+                    <th>Item/Descr</th>
+                    <th>Cantidad</th>
+                    <th>UOM</th> {# Unidad de Medida (Unit Of Measure) #}
+                    <th>Precio</th>
+                    <th>Importe sin IGV</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asistencia in asistencias %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> {# Número de línea #}
+                    <td>
+                        005021 <br>
+                        Servicio de apoyo bus: {{ asistencia.colegio_asistencia.nombre_colegio }} - {{ asistencia.fecha_asistencia|date:"d/m" }} ({{ asistencia.turno_asistencia }})
+                    </td>
+                    <td>1</td> {# Asumiendo 1 unidad por cada asistencia registrada #}
+                    <td>UND</td>
+                    <td>{{ asistencia.monto_pagado_asistencia|floatformat:2 }}</td> {# Precio unitario #}
+                    <td>{{ asistencia.monto_pagado_asistencia|floatformat:2 }}</td> {# Importe sin IGV (asumiendo inafecto) #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Distrib</th>
+                    <th>Cantidad</th>
+                    <th>Importe</th>
+                    <th>Cuenta</th>
+                    <th>Unidad Explotación</th>
+                    <th>Departamento</th>
+                    <th>Producto</th>
+                    <th>Proyectos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Bucle por cada asistencia para la distribución #}
+                {% for asistencia in asistencias %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>1</td>
+                    <td>{{ asistencia.monto_pagado_asistencia|floatformat:2 }}</td>
+                    <td>6329000101-OTRAS ASESORIAS O SERVICIOS</td> {# Dato estático si aplica siempre #}
+                    <td>{{ asistencia.colegio_asistencia.codigo_unidad_explotacion|default:"N/A" }}-{{ asistencia.colegio_asistencia.nombre_colegio|default:"N/A" }}</td> {# Ejemplo: Combina código y nombre de colegio #}
+                    <td>227200000-Comercial - Marketing Regional</td> {# Dato estático #}
+                    <td>272202-Eventos</td> {# Dato estático #}
+                    <td>GENERICO-GENERICO</td> {# Dato estático #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary-section">
+        <div class="summary-left">
+            <p><strong>Características Principales 1:</strong> Servicio de apoyo buses Día UTP Lima Sur el 17/06 (M) y 19/06 (M) de Junio (S/50).</p>
+            <p><strong>Total de Junio (S/{{ orden.total_pagado|floatformat:2 }}).</strong></p>
+            <p><strong>Características Principales 2:</strong></p>
+            <p><strong>Características Principales 3:</strong></p>
+            {# Asumiendo que el "usuario final" es el mismo Apoyo #}
+            <p><strong>Nombre del usuario final:</strong> {{ orden.apoyo.nombre_completo_apoyo }}</p>
+            <p><strong>Email del usuario final:</strong> {{ orden.apoyo.email_apoyo|default:"N/A" }}</p>
+            <p><strong>Celular del usuario final:</strong> {{ orden.apoyo.telefono|default:"N/A" }}</p>
+            <p><strong>Dirección de entrega:</strong> SEGUN DISTRIBUCION</p> {# Dato estático o campo del colegio #}
+            <p><strong>Concepto presupuestal:</strong> Rxh - Apoyos</p> {# Dato estático o campo de la orden #}
+        </div>
+        <div class="summary-right">
+            <table>
+                <tr>
+                    <td>Sub Total</td>
+                    <td>{{ orden.total_pagado|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>IGV</td>
+                    <td>0.00</td> {# Asumiendo que los servicios de apoyo son inafectos al IGV #}
+                </tr>
+                <tr>
+                    <td>Total Importe</td>
+                    <td>{{ orden.total_pagado|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -2,13 +2,20 @@
 
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST,require_GET
 import json
 from .FireStore.fs_apoyo import CN_Apoyo
 from Login.models import Administrador
-from .models import Apoyo,Promotor,Colegio,Asistencia
+from .models import Apoyo,Promotor,Colegio,Asistencia,OrdenPago
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from decimal import Decimal
+from datetime import date
+# Importaciones para WeasyPrint y templates
+from weasyprint import HTML, CSS
+from django.template.loader import render_to_string
+from django.urls import reverse
 # MÉTODO ESPECIAL PARA OBTENER CREDENCIALES DEL ADMIN
 def obtener_administrador(request):
     correo = request.session.get('correo_administrador')
@@ -360,7 +367,161 @@ def confirmar_asistencia_estado(request, asistencia_id, estado):
 
 #==============================================================================================================
 #===================================== VISTA PARA GENERAR OCs Y NRs ===========================================
+# ===================================== VISTA PARA GENERAR OCs Y NRs ===========================================
+
+# Vista principal para el generador
 def generador(request):
     admin = obtener_administrador(request)
     return render(request, 'generador.html', {'admin': admin})
-#==============================================================================================================
+
+# Función para obtener la lista de apoyos (renombrada de obtener_apoyos_api)
+@require_GET
+def obtener_apoyos_json(request): # Renombrado
+    if not obtener_administrador(request):
+        return JsonResponse({'error': 'Acceso no autorizado'}, status=401)
+    apoyos = Apoyo.objects.all().order_by('nombre_completo_apoyo')
+    data = [{'id': apoyo.id, 'nombre_completo': apoyo.nombre_completo_apoyo} for apoyo in apoyos]
+    return JsonResponse(data, safe=False)
+
+# Función para obtener asistencias pendientes de pago para un apoyo (renombrada de obtener_asistencias_pendientes_api)
+@require_GET
+def obtener_asistencias_pendientes_json(request, apoyo_id): # Renombrado
+    if not obtener_administrador(request):
+        return JsonResponse({'error': 'Acceso no autorizado'}, status=401)
+    try:
+        # Ahora usamos el campo `orden_pago` para excluir asistencias que ya están vinculadas a una OrdenPago
+        asistencias = Asistencia.objects.filter(
+            apoyo_asistencia_id=apoyo_id,
+            asistencia_asistencia=True, # Solo asistencias confirmadas
+            monto_pagado_asistencia__gt=0 # Solo las que tienen un monto asignado
+        ).filter(
+            orden_pago__isnull=True # <--- ¡IMPORTANTE! Excluye asistencias que YA tienen una OrdenPago asignada
+        ).select_related('colegio_asistencia', 'apoyo_asistencia').order_by('fecha_asistencia')
+
+        data = []
+        for asis in asistencias:
+            data.append({
+                'id': asis.id,
+                'fecha': asis.fecha_asistencia.strftime('%d/%m/%Y'),
+                'colegio': asis.colegio_asistencia.nombre_colegio,
+                'rol': asis.rol_asistencia,
+                'turno': asis.turno_asistencia,
+                'monto_pagado': str(asis.monto_pagado_asistencia)
+            })
+        return JsonResponse(data, safe=False)
+    except Apoyo.DoesNotExist:
+        return JsonResponse({'error': 'Apoyo no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f'Error al obtener asistencias: {str(e)}'}, status=500)
+
+@require_GET
+def obtener_ordenes_pago_json(request):
+    admin = obtener_administrador(request) # Usar la función obtener_administrador
+    if not admin: # O si no quieres autenticación para esta vista, puedes quitar esta parte
+        return JsonResponse({'error': 'Acceso no autorizado'}, status=401)
+    
+    ordenes = OrdenPago.objects.select_related('apoyo').prefetch_related('asistencias_incluidas').order_by('-fecha_generacion')
+    
+    data = []
+    for orden in ordenes:
+        # **CORRECCIÓN AQUÍ:** Usamos 'descargar_pdf_real' que es el nombre de tu URL real
+        pdf_oc_url = request.build_absolute_uri(
+            reverse('descargar_pdf_real', kwargs={'tipo': 'oc', 'orden_id': orden.id})
+        )
+        pdf_nr_url = request.build_absolute_uri(
+            reverse('descargar_pdf_real', kwargs={'tipo': 'nr', 'orden_id': orden.id})
+        )
+
+        data.append({
+            'id': orden.id,
+            'numero_documento': orden.numero_documento,
+            'apoyo_nombre': orden.apoyo.nombre_completo_apoyo,
+            'fecha_generacion': orden.fecha_generacion.strftime('%d/%m/%Y %H:%M'),
+            'total_pagado': str(orden.total_pagado),
+            'asistencias_incluidas_count': orden.asistencias_incluidas.count(),
+            'pdf_oc_url': pdf_oc_url,
+            'pdf_nr_url': pdf_nr_url,
+        })
+    return JsonResponse(data, safe=False)
+
+# Función para obtener la lista de Órdenes de Pago generadas (renombrada de obtener_ordenes_pago_api)
+#BORRAR LUEGO
+@require_GET
+def obtener_ordenes_pago_json_no(request): # Renombrado
+    if not obtener_administrador(request):
+        return JsonResponse({'error': 'Acceso no autorizado'}, status=401)
+    
+    # Usamos prefetch_related para obtener las asistencias relacionadas de cada orden de pago
+    # de forma eficiente con una sola consulta adicional.
+    ordenes = OrdenPago.objects.select_related('apoyo').prefetch_related('asistencias_incluidas').order_by('-fecha_generacion')
+    
+    data = []
+    for orden in ordenes:
+        data.append({
+            'id': orden.id,
+            'numero_documento': orden.numero_documento,
+            'apoyo_nombre': orden.apoyo.nombre_completo_apoyo,
+            'fecha_generacion': orden.fecha_generacion.strftime('%d/%m/%Y %H:%M'),
+            'total_pagado': str(orden.total_pagado),
+            'asistencias_incluidas_count': orden.asistencias_incluidas.count(), # <--- ¡Ahora esto funcionará!
+            'pdf_oc_url': request.build_absolute_uri(f'/Evento/generador/descargar_pdf_simulado/oc/{orden.id}/'), # URL corregida
+            'pdf_nr_url': request.build_absolute_uri(f'/Evento/generador/descargar_pdf_simulado/nr/{orden.id}/') # URL corregida
+        })
+    return JsonResponse(data, safe=False)
+
+def descargar_pdf_real(request, tipo, orden_id):
+    admin = obtener_administrador(request)
+    if not admin:
+        return HttpResponse("Acceso no autorizado", status=401)
+
+    orden_pago = get_object_or_404(OrdenPago, pk=orden_id)
+    asistencias_de_la_orden = orden_pago.asistencias_incluidas.all().select_related('colegio_asistencia')
+
+    tipo_documento_str = ""
+    template_file = ""
+    context = {} # Inicializamos el contexto aquí
+
+    if tipo.lower() == 'oc':
+        tipo_documento_str = "Orden de Compra"
+        template_file = 'OC.html' # ¡Asumiendo que has creado este archivo!
+
+        # Datos ESPECÍFICOS para Orden de Compra (OC)
+        # Aquí puedes añadir datos adicionales que solo necesita la plantilla OC.html
+        context['titulo_oc_especifico'] = "Detalle de Orden de Compra"
+        # Por ejemplo, podrías querer un número de referencia diferente o campos de pago específicos
+        # context['condiciones_pago_oc'] = "30 días netos"
+        # context['metodo_envio_oc'] = "Correo electrónico"
+
+    elif tipo.lower() == 'nr':
+        tipo_documento_str = "Nota de Recepción"
+        template_file = 'NC.html' # Tu plantilla existente para Nota de Recepción
+
+        # Datos ESPECÍFICOS para Nota de Recepción (NR)
+        # Aquí puedes añadir datos adicionales que solo necesita la plantilla NC.html
+        context['nota_recepcion_observaciones'] = "Se recibió conforme la totalidad de los servicios."
+        # context['fecha_recepcion_nr'] = orden_pago.fecha_generacion.strftime('%d/%m/%Y') # Podría ser diferente a la fecha de OC
+
+    else:
+        return HttpResponse("Tipo de documento no válido", status=400)
+
+    # Datos COMUNES para ambos tipos (OC y NR)
+    # Estos datos se añaden al contexto base
+    context['orden'] = orden_pago
+    context['tipo_documento'] = tipo_documento_str
+    context['asistencias'] = asistencias_de_la_orden
+    context['admin'] = admin
+    # ... y cualquier otro dato que ambas plantillas necesiten ...
+
+    try:
+        html_string = render_to_string(template_file, context)
+    except Exception as e:
+        # Manejo de error si la plantilla no se encuentra (ej. OC.html no existe aún)
+        return HttpResponse(f"Error al renderizar la plantilla '{template_file}': {str(e)}", status=500)
+
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+
+    filename = f"{tipo.upper()}-{orden_pago.numero_documento}.pdf"
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    #response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tipo_documento }}: {{ orden.numero_documento }} - Horizontal</title> {# Título dinámico #}
+    <style>
+    @page {
+    size: A4 landscape; /* O Letter landscape, dependiendo del tamaño de papel deseado */
+    margin: 1cm; /* O el margen que prefieras */
+    }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px auto; /* Centra el contenido en la página */
+            font-size: 10pt;
+            /* **Ajuste clave para horizontalidad:** Ancho máximo más grande para aprovechar el espacio */
+            max-width: 1100px; /* Ancho más adecuado para una vista "horizontal" */
+            box-sizing: border-box;
+            padding: 0 20px; /* Mayor padding a los lados para márgenes */
+        }
+
+        .header, .info-section, .table-container, .summary-section {
+            margin-bottom: 15px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header .logo {
+            flex-shrink: 0;
+            margin-right: 20px;
+        }
+
+        .header .logo img {
+            max-width: 100px;
+            height: auto;
+            display: block;
+        }
+
+        .header .main-title {
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .header .page-info {
+            font-size: 9pt;
+            text-align: right;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .info-section {
+            display: flex;
+            /* Permite que los elementos se distribuyan en más columnas si hay espacio */
+            flex-wrap: wrap; 
+            justify-content: space-between; /* Distribuye los bloques en el espacio horizontal */
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .info-block {
+            /* **Ajuste clave para horizontalidad:** Más flexibilidad en el ancho */
+            flex: 1 1 30%; /* Intentar 3 columnas si el espacio lo permite (30% + 30% + 30% = 90%) */
+            min-width: 250px; /* Ancho mínimo para que no se aprieten demasiado */
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Ajuste específico para el bloque de Cod Recepción, para que no fuerce una columna solo para él */
+        .info-section .info-block:last-child {
+            flex-grow: 0; /* No crece para ocupar todo el espacio */
+            flex-basis: auto; /* Ancho basado en el contenido */
+        }
+
+        .info-block table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+        }
+
+        .info-block table td {
+            padding: 2px 0;
+            vertical-align: top;
+        }
+
+        .info-block table td:first-child {
+            font-weight: bold;
+            width: 35%; /* Ancho para las etiquetas de las tablas de info */
+            white-space: nowrap; /* Evita que las etiquetas se rompan */
+        }
+        /* Ajuste específico para la primera sección de info para que las celdas de la derecha no sean tan anchas */
+        .info-section > .info-block:nth-child(1) table td:first-child { width: 30%; }
+        .info-section > .info-block:nth-child(2) table td:first-child { width: 40%; }
+
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 9pt;
+        }
+
+        .table-container th, .table-container td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .table-container th {
+            background-color: #CCE0FF;
+            font-weight: bold;
+        }
+
+        /* Ajuste de ancho de columnas para la tabla principal de ítems - redistribuidos para horizontal */
+        .table-container table thead th:nth-child(1) { width: 6%; } /* Recv Ln */
+        .table-container table thead th:nth-child(2) { width: 8%; } /* Articulo */
+        .table-container table thead th:nth-child(3) { width: 28%; } /* Descripción */
+        .table-container table thead th:nth-child(4) { width: 7%; } /* Cantidad */
+        .table-container table thead th:nth-child(5) { width: 7%; } /* UOM */
+        .table-container table thead th:nth-child(6) { width: 14%; } /* Departamento */
+        .table-container table thead th:nth-child(7) { width: 10%; } /* Producto */
+        .table-container table thead th:nth-child(8) { width: 5%; } /* Vinculada */
+        .table-container table thead th:nth-child(9) { width: 7%; } /* Precio */
+        .table-container table thead th:nth-child(10) { width: 8%; } /* Sub Total - Asegurarse que sumen 100% o cerca */
+
+
+        .summary-total {
+            text-align: right;
+            margin-top: 10px;
+        }
+        .summary-total table {
+            width: 250px;
+            margin-left: auto;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+        .summary-total table td {
+            padding: 2px 5px;
+            border: 1px solid #ccc;
+        }
+        .summary-total table td:first-child {
+            font-weight: bold;
+            text-align: left;
+        }
+        
+    </style>
+</head>
+<body>
+    {% load static %} {# Carga las etiquetas de static para usar {% static %} #}
+
+    <div class="header">
+        <div class="logo">
+            <img src="{% static 'img/logo_utp.jpg' %}" alt="UTP Logo"> {# Ruta estática #}
+        </div>
+        <div class="main-title">
+            {{ tipo_documento }} {# Será "Nota de Recepción" #}
+        </div>
+        <div class="page-info">
+            Pag No.1 de 1 <br>
+            Fecha:{{ orden.fecha_generacion|date:"Y-m-d" }} {# Fecha dinámica de la orden #}
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-block">
+            <table>
+                <tr>
+                    <td>Id Reporte:</td>
+                    <td>POX5030</td> {# Estático #}
+                </tr>
+                <tr>
+                    <td>Usuario:</td>
+                    <td>ALEXXIA NICOLE HIDALGO GELDRES</td> {# Estático #}
+                </tr>
+            </table>
+        </div>
+        <div class="info-block">
+            <table>
+                <tr>
+                    <td>Unidad Negocio</td>
+                    <td>UTP S.A.C. BU</td> {# Estático #}
+                </tr>
+                <tr>
+                    <td>Recepción Proveedor:</td>
+                    <td>{{ orden.apoyo.nombre_completo_apoyo|default:"" }} <br> {{ orden.apoyo.dni_ruc_apoyo|default:"" }}</td> {# Dinámico: Nombre y RUC del Apoyo #}
+                </tr>
+                <tr>
+                    <td>Fecha Recepción:</td>
+                    <td>{{ orden.fecha_generacion|date:"d-m-Y" }}</td> {# Dinámico: Usar la fecha de la orden #}
+                </tr>
+                <tr>
+                    <td>Estado</td>
+                    <td>NUEVO</td> {# Estático #}
+                </tr>
+                <tr>
+                    <td>Guía Remisión:</td>
+                    <td></td> {# Vacío, si no se usa #}
+                </tr>
+                <tr>
+                    <td>Id Pedido</td>
+                    <td>{{ orden.numero_documento|default:"N/A" }}</td> {# Dinámico: Número de la OC #}
+                </tr>
+            </table>
+        </div>
+        <div class="info-block">
+            <table>
+                <tr>
+                    <td>Cod Recepción:</td>
+                    <td>119819</td> {# Estático, o si es dinámico, aquí iría una variable #}
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Recv Ln</th>
+                    <th>Articulo</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>UOM</th>
+                    <th>Departamento</th>
+                    <th>Producto</th>
+                    <th>Vinculada</th>
+                    <th>Precio</th>
+                    <th>Sub Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asistencia in asistencias %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> {# Número de línea #}
+                    <td>005021</td> {# Estático #}
+                    <td>
+                        OTRAS ASESORIAS Y/O <br> SERVICIOS RXH - INAFECTO IGV <br>
+                        Servicio de apoyo bus: {{ asistencia.colegio_asistencia.nombre_colegio }} - {{ asistencia.fecha_asistencia|date:"d/m" }} ({{ asistencia.turno_asistencia }})
+                    </td> {# Descripción combinada #}
+                    <td>1</td> {# Asumiendo 1 unidad por cada asistencia #}
+                    <td>UND</td> {# Estático #}
+                    <td>227200000-Comercial - Marketing Regional</td> {# Estático #}
+                    <td>272202-Eventos</td> {# Estático #}
+                    <td>00</td> {# Estático #}
+                    <td>{{ asistencia.monto_pagado_asistencia|floatformat:2 }}</td> {# Precio unitario #}
+                    <td>{{ asistencia.monto_pagado_asistencia|floatformat:2 }}</td> {# Subtotal #}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary-total">
+        <table>
+            <tr>
+                <td>Total</td>
+                <td>{{ orden.total_pagado|floatformat:2 }}</td> {# Total dinámico #}
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

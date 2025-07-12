@@ -19,4 +19,12 @@ urlpatterns = [
     path('eliminar_asistencia/<int:asistencia_id>/', views.eliminar_asistencia, name='eliminar_asistencia'),
     path('confirmar_asistencia/<int:asistencia_id>/<str:estado>/', views.confirmar_asistencia_estado, name='confirmar_asistencia_estado'),
     path('generadores/', views.generador, name='generador_link'),
+
+# NUEVAS RUTAS PARA EL GENERADOR DE OC/NR - SIN EL TERMINO 'api/'
+    path('generador/apoyos/', views.obtener_apoyos_json, name='obtener_apoyos_json'),
+    path('generador/asistencias_pendientes/<int:apoyo_id>/', views.obtener_asistencias_pendientes_json, name='obtener_asistencias_pendientes_json'),
+    path('generador/generar_orden_pago/', views.obtener_ordenes_pago_json, name='generar_orden_pago_json'),
+    path('generador/ordenes_pago/', views.obtener_ordenes_pago_json, name='obtener_ordenes_pago_json'),
+    #path('generador/descargar_pdf_simulado/<str:tipo>/<int:orden_id>/', views.descargar_pdf_simulado, name='descargar_pdf_simulado_json'),
+    path('generador/descargar_pdf/<str:tipo>/<int:orden_id>/', views.descargar_pdf_real, name='descargar_pdf_real'),
 ]

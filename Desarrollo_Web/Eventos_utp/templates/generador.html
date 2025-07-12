@@ -13,6 +13,8 @@
 
 {% block content %}
 <div>
+    {% csrf_token %} 
+    
     <h1>Generador de Órdenes de Compra y Notas de Recepción</h1>
 
     <section class="seccion-seleccion-apoyo">
@@ -29,8 +31,7 @@
         <h2>2. Seleccionar Asistencias para Pagar</h2>
         <p>Seleccione las asistencias confirmadas del apoyo para incluir en la OC/NR.</p>
         <div id="listaAsistenciasParaSeleccionar" class="lista-seleccionable">
-            <!-- las asisstencias registradas -->
-        </div>
+            </div>
     </section>
 
     <section id="seccionResumenOC" style="display:none;">
@@ -47,8 +48,7 @@
                     </tr>
                 </thead>
                 <tbody id="cuerpoTablaResumenPago">
-                    <!-- sobre lo seleccionaod -->
-                </tbody>
+                    </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="4" style="text-align: right; font-weight: bold;">Total a Pagar:</td>
@@ -81,8 +81,7 @@
                     </tr>
                 </thead>
                 <tbody id="cuerpoTablaOCGeneradas">
-                    <!-- Aquí se listan los oc y nr -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </section>
@@ -96,5 +95,262 @@
         </div>
     </div>
 </div>
-<script src="{% static 'js/generador.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectApoyoParaOC = document.getElementById('selectApoyoParaOC');
+    const seccionAsistenciasPendientes = document.getElementById('seccionAsistenciasPendientes');
+    const listaAsistenciasParaSeleccionar = document.getElementById('listaAsistenciasParaSeleccionar');
+    const seccionResumenOC = document.getElementById('seccionResumenOC');
+    const cuerpoTablaResumenPago = document.getElementById('cuerpoTablaResumenPago');
+    const totalAPagarOC = document.getElementById('totalAPagarOC');
+    const btnGenerarDocumentos = document.getElementById('btnGenerarDocumentos');
+    const cuerpoTablaOCGeneradas = document.getElementById('cuerpoTablaOCGeneradas');
+    const campoBusquedaOCGeneradas = document.getElementById('campoBusquedaOCGeneradas');
+
+    const modalVisualizadorDocumento = document.getElementById('modalVisualizadorDocumento');
+    const btnCerrarModalVisualizador = document.getElementById('btnCerrarModalVisualizador');
+    const tituloModalVisualizador = document.getElementById('tituloModalVisualizador');
+    const contenidoModalVisualizador = document.getElementById('contenidoModalVisualizador');
+
+    let asistenciasSeleccionadas = []; // Almacena los IDs de las asistencias seleccionadas
+    let todasAsistenciasDisponibles = []; // Para almacenar los detalles completos de las asistencias cargadas
+
+    // Función para obtener el CSRF token
+    function getCsrfToken() {
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        return csrfInput ? csrfInput.value : ''; // Manejar caso donde no se encuentre
+    }
+
+    // Cargar apoyos al inicio
+    async function cargarApoyos() {
+        try {
+            // URL corregida
+            const response = await fetch('/Evento/generador/apoyos/');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al cargar apoyos.');
+            }
+            const apoyos = await response.json();
+            selectApoyoParaOC.innerHTML = '<option value="">Seleccione un apoyo...</option>';
+            apoyos.forEach(apoyo => {
+                const option = document.createElement('option');
+                option.value = apoyo.id;
+                option.textContent = apoyo.nombre_completo;
+                selectApoyoParaOC.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar apoyos:', error);
+            alert('Error al cargar los apoyos: ' + error.message);
+        }
+    }
+
+    // Cargar asistencias pendientes para el apoyo seleccionado
+    async function cargarAsistenciasPendientes(apoyoId) {
+        listaAsistenciasParaSeleccionar.innerHTML = '<p>Cargando asistencias...</p>';
+        seccionAsistenciasPendientes.style.display = 'block';
+        seccionResumenOC.style.display = 'none';
+        asistenciasSeleccionadas = []; // Resetear selección
+        todasAsistenciasDisponibles = []; // Resetear asistencias disponibles
+        actualizarResumenPago();
+
+        if (!apoyoId) {
+            listaAsistenciasParaSeleccionar.innerHTML = '<p>Seleccione un apoyo para ver sus asistencias pendientes.</p>';
+            seccionAsistenciasPendientes.style.display = 'none';
+            return;
+        }
+
+        try {
+            // URL corregida
+            const response = await fetch(`/Evento/generador/asistencias_pendientes/${apoyoId}/`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al cargar asistencias pendientes.');
+            }
+            const asistencias = await response.json();
+            todasAsistenciasDisponibles = asistencias; // Almacena para el resumen
+
+            listaAsistenciasParaSeleccionar.innerHTML = '';
+            if (asistencias.length === 0) {
+                listaAsistenciasParaSeleccionar.innerHTML = '<p>No hay asistencias pendientes de pago para este apoyo.</p>';
+            } else {
+                asistencias.forEach(asis => {
+                    const item = document.createElement('div');
+                    item.className = 'item-asistencia-seleccionable';
+                    item.dataset.id = asis.id;
+                    item.dataset.monto = asis.monto_pagado;
+                    item.innerHTML = `
+                        <input type="checkbox" id="asis-${asis.id}" data-id="${asis.id}" data-monto="${asis.monto_pagado}">
+                        <label for="asis-${asis.id}">
+                            ${asis.fecha} - ${asis.colegio} (${asis.rol}, ${asis.turno}) - S/ ${parseFloat(asis.monto_pagado).toFixed(2)}
+                        </label>
+                    `;
+                    listaAsistenciasParaSeleccionar.appendChild(item);
+
+                    item.querySelector('input[type="checkbox"]').addEventListener('change', (event) => {
+                        const id = parseInt(event.target.dataset.id);
+                        const monto = parseFloat(event.target.dataset.monto);
+                        if (event.target.checked) {
+                            asistenciasSeleccionadas.push({ id, monto });
+                        } else {
+                            asistenciasSeleccionadas = asistenciasSeleccionadas.filter(a => a.id !== id);
+                        }
+                        actualizarResumenPago();
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar asistencias:', error);
+            alert('Error al cargar asistencias: ' + error.message);
+            listaAsistenciasParaSeleccionar.innerHTML = '<p>Error al cargar las asistencias.</p>';
+        }
+    }
+
+    // Actualizar la tabla de resumen y el total
+    function actualizarResumenPago() {
+        cuerpoTablaResumenPago.innerHTML = '';
+        let total = 0;
+        if (asistenciasSeleccionadas.length > 0) {
+            seccionResumenOC.style.display = 'block';
+            const selectedApoyoText = selectApoyoParaOC.options[selectApoyoParaOC.selectedIndex].textContent;
+
+            asistenciasSeleccionadas.forEach(asisSel => {
+                const asisCompleta = todasAsistenciasDisponibles.find(a => a.id === asisSel.id);
+                if (asisCompleta) {
+                    const row = cuerpoTablaResumenPago.insertRow();
+                    row.insertCell().textContent = selectedApoyoText;
+                    row.insertCell().textContent = asisCompleta.fecha;
+                    row.insertCell().textContent = asisCompleta.colegio;
+                    row.insertCell().textContent = asisCompleta.rol;
+                    row.insertCell().textContent = `S/ ${parseFloat(asisCompleta.monto_pagado).toFixed(2)}`;
+                    total += parseFloat(asisCompleta.monto_pagado);
+                }
+            });
+        } else {
+            seccionResumenOC.style.display = 'none';
+        }
+        totalAPagarOC.textContent = `S/ ${total.toFixed(2)}`;
+    }
+
+    // Generar Orden de Pago
+    btnGenerarDocumentos.addEventListener('click', async () => {
+        if (asistenciasSeleccionadas.length === 0) {
+            alert('Por favor, seleccione al menos una asistencia para generar la OC/NR.');
+            return;
+        }
+
+        const confirmacion = confirm('¿Está seguro de que desea generar la Orden de Compra/Nota de Recepción para las asistencias seleccionadas?');
+        if (!confirmacion) {
+            return;
+        }
+        const apoyoId = selectApoyoParaOC.value;
+        const asistenciaIds = asistenciasSeleccionadas.map(a => a.id);
+
+        try {
+            // URL corregida
+            const response = await fetch('/Evento/generador/generar_orden_pago/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    apoyo_id: apoyoId,
+                    asistencia_ids: asistenciaIds
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al generar la Orden de Pago.');
+            }
+
+            const data = await response.json();
+            alert(data.mensaje);
+            // Recargar ambas secciones para reflejar los cambios
+            cargarAsistenciasPendientes(apoyoId); // Para que las asistencias pagadas ya no aparezcan
+            cargarOrdenesPago(); // Para que la nueva OC/NR aparezca en la tabla
+            seccionResumenOC.style.display = 'none'; // Ocultar resumen
+            asistenciasSeleccionadas = []; // Limpiar selección
+            actualizarResumenPago();
+        } catch (error) {
+            console.error('Error al generar OC/NR:', error);
+            alert('Error al generar la OC/NR: ' + error.message);
+        }
+    });
+
+    // Cargar Órdenes de Pago generadas
+    async function cargarOrdenesPago() {
+        cuerpoTablaOCGeneradas.innerHTML = '<tr><td colspan="6" style="text-align: center;">Cargando órdenes de pago...</td></tr>';
+        try {
+            // URL corregida
+            const response = await fetch('/Evento/generador/ordenes_pago/');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new new Error(errorData.error || 'Error al cargar órdenes de pago.');
+            }
+            const ordenes = await response.json();
+
+            cuerpoTablaOCGeneradas.innerHTML = '';
+            if (ordenes.length === 0) {
+                cuerpoTablaOCGeneradas.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay Órdenes de Pago / Notas de Recepción generadas.</td></tr>';
+            } else {
+                ordenes.forEach(orden => {
+                    const row = cuerpoTablaOCGeneradas.insertRow();
+                    row.dataset.id = orden.id; // Para la búsqueda
+                    row.dataset.apoyo = orden.apoyo_nombre.toLowerCase(); // Para la búsqueda
+                    row.dataset.fecha = orden.fecha_generacion.toLowerCase(); // Para la búsqueda
+                    row.dataset.numero = orden.numero_documento.toLowerCase(); // Para la búsqueda
+                    row.insertCell().textContent = orden.numero_documento;
+                    row.insertCell().textContent = orden.apoyo_nombre;
+                    row.insertCell().textContent = orden.fecha_generacion;
+                    row.insertCell().textContent = `S/ ${parseFloat(orden.total_pagado).toFixed(2)}`;
+                    row.insertCell().textContent = orden.asistencias_incluidas_count; // <--- ¡Ahora mostrará el conteo!
+
+                    const documentosCell = row.insertCell();
+                    const btnOC = document.createElement('button');
+                    btnOC.className = 'boton-accion boton-descargar';
+                    btnOC.textContent = '📄 OC';
+                    // URL corregida en el front-end
+                    btnOC.onclick = () => window.open(orden.pdf_oc_url, '_blank');
+                    documentosCell.appendChild(btnOC);
+
+                    const btnNR = document.createElement('button');
+                    btnNR.className = 'boton-accion boton-descargar';
+                    btnNR.textContent = '📄 NR';
+                    // URL corregida en el front-end
+                    btnNR.onclick = () => window.open(orden.pdf_nr_url, '_blank');
+                    documentosCell.appendChild(btnNR);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar órdenes de pago:', error);
+            alert('Error al cargar órdenes de pago: ' + error.message);
+            cuerpoTablaOCGeneradas.innerHTML = '<tr><td colspan="6" style="text-align: center;">Error al cargar las órdenes de pago.</td></tr>';
+        }
+    }
+
+    // Event Listeners
+    selectApoyoParaOC.addEventListener('change', (event) => {
+        cargarAsistenciasPendientes(event.target.value);
+    });
+
+    // Campo de búsqueda para OC generadas
+    campoBusquedaOCGeneradas.addEventListener('input', function () {
+        const termino = this.value.toLowerCase().trim();
+        document.querySelectorAll('#tablaOCGeneradas tbody tr').forEach(fila => {
+            const numeroDoc = fila.dataset.numero || '';
+            const apoyoNombre = fila.dataset.apoyo || '';
+            const fechaGeneracion = fila.dataset.fecha || '';
+
+            const textoFila = `${numeroDoc} ${apoyoNombre} ${fechaGeneracion}`;
+            fila.style.display = textoFila.includes(termino) ? '' : 'none';
+        });
+    });
+
+
+    // Inicializar
+    cargarApoyos();
+    cargarOrdenesPago();
+});    
+</script>
 {% endblock %}

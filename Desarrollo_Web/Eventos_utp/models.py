@@ -38,6 +38,13 @@ class Asistencia(models.Model):
     turno_asistencia = models.CharField(max_length=50)
     asistencia_asistencia = models.BooleanField(default=False)
     monto_pagado_asistencia = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    orden_pago = models.ForeignKey(
+    'OrdenPago',
+    on_delete=models.SET_NULL, # Si la OrdenPago se elimina, este campo se pone a NULL
+    null=True,                 # Permite que una asistencia aún no esté en una OrdenPago
+    blank=True,                # Permite que el campo esté vacío en el admin/formularios
+    related_name='asistencias_incluidas' # Nombre para acceder a las asistencias desde OrdenPago
+    )
     def __str__(self):
         return f"{self.apoyo} - {self.colegio} ({self.fecha})"
 
